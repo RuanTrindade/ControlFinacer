@@ -2,8 +2,7 @@ package TCC.ControleFincanceiro.entity.enumerated;
 
 
 
-public enum TipoCategoria {
+public enum TipoTransacao {
     RECEITA,
-    DESPESA,
-    INVESTIMENTO
+    DESPESA
 }

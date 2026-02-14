@@ -1,7 +1,7 @@
 package TCC.ControleFincanceiro.entity;
 
 
-import TCC.ControleFincanceiro.entity.enumerated.TipoCategoria;
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +20,7 @@ public class Categoria {
     private String cor;
 
     @Enumerated(EnumType.STRING)
-    private TipoCategoria tipo;
+    private TipoTransacao tipo;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
