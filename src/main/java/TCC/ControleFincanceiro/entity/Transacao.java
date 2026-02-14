@@ -1,5 +1,6 @@
 package TCC.ControleFincanceiro.entity;
 
+import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,6 +22,10 @@ public class Transacao {
     private String descricao;
 
     private BigDecimal valor;
+
+    @Enumerated(EnumType.STRING)
+    private MetodoPagamento metodoPagamento;
+
 
     @Enumerated(EnumType.STRING)
     private StatusPagamento status;
