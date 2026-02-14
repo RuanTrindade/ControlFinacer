@@ -1,6 +1,8 @@
 package TCC.ControleFincanceiro.entity;
 
 
+import TCC.ControleFincanceiro.entity.enumerated.PlanoUsuario;
+import TCC.ControleFincanceiro.entity.enumerated.StatusUsuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
