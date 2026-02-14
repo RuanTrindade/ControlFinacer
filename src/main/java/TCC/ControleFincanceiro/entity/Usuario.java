@@ -27,8 +27,8 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private PlanoUsuario plano;
 
-    @Enumerated(EnumType.STRING)
-    private StatusUsuario status;
+    //@Enumerated(EnumType.STRING)
+    //private StatusUsuario status;
 
     private LocalDateTime dataCadastro = LocalDateTime.now();
 
