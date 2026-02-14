@@ -28,6 +28,7 @@ public class PlanejamentoMensal {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "planejamento", cascade = CascadeType.ALL)
-    private List<PlanejamentoMensal> categoria;
+    @OneToMany(mappedBy = "planejamentoMensal", cascade = CascadeType.ALL)
+    private List<PlanejamentoCategoria> categorias;
+
 }

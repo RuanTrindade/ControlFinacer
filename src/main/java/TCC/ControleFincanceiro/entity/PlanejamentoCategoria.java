@@ -20,7 +20,7 @@ public class PlanejamentoCategoria {
 
     @ManyToOne
     @JoinColumn(name = "planejamento_id", nullable = false)
-    private PlanejamentoMensal planejamento;
+    private PlanejamentoMensal planejamentoMensal;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)
