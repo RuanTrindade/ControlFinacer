@@ -13,12 +13,8 @@ public class Investimento {
     private Long id;
 
     private String nome;
-    private BigDecimal valorInicial;
-    private BigDecimal valorAtual;
-    private BigDecimal taxaRendimento;
-    private BigDecimal aporteMensal;
-    private Integer prazoMeses;
-    private LocalDate dataInicial;
+    private BigDecimal taxaAtual;
+    private String tipo;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
