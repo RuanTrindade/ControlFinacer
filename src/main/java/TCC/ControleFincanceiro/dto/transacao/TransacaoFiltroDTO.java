@@ -1,4 +1,4 @@
-package TCC.ControleFincanceiro.dto;
+package TCC.ControleFincanceiro.dto.transacao;
 
 import TCC.ControleFincanceiro.entity.enumerated.transacao.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.transacao.StatusPagamento;
