@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(
+@Table( name = "planejamento_mensal",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"referencia", "usuario_id"})
         }
