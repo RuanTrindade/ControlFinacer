@@ -22,7 +22,9 @@ public class Categoria {
     @Enumerated(EnumType.STRING)
     private TipoTransacao tipo;
 
+    private Boolean padraoSistema = false;
+
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 }
