@@ -17,7 +17,7 @@ public class Objetivo {
     private Long id;
     private String nome;
     private BigDecimal valorObjetivo;
-    private BigDecimal valorAtual;
+    //private BigDecimal valorAtual;
     private LocalDate dataFinal;
     private String cor;
     private String icone;
