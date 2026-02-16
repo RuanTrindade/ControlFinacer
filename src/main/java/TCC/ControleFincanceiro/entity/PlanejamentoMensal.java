@@ -12,6 +12,11 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"referencia", "usuario_id"})
+        }
+)
 public class PlanejamentoMensal {
 
     @Id
