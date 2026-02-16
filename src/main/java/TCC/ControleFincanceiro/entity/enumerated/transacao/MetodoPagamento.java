@@ -1,4 +1,4 @@
-package TCC.ControleFincanceiro.entity.enumerated;
+package TCC.ControleFincanceiro.entity.enumerated.transacao;
 
 public enum MetodoPagamento {
         PIX,

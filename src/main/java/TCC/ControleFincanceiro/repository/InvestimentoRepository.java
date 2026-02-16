@@ -1,7 +1,6 @@
 package TCC.ControleFincanceiro.repository;
 
 import TCC.ControleFincanceiro.entity.Investimento;
-import TCC.ControleFincanceiro.entity.enumerated.TipoInvestimento;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

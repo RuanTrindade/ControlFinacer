@@ -1,8 +1,8 @@
 package TCC.ControleFincanceiro.repository;
 
 import TCC.ControleFincanceiro.entity.Transacao;
-import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.MetodoPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.StatusPagamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

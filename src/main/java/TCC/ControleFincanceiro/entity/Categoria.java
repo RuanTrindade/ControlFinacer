@@ -1,7 +1,7 @@
 package TCC.ControleFincanceiro.entity;
 
 
-import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.TipoTransacao;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

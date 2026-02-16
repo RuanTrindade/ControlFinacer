@@ -1,7 +1,7 @@
 package TCC.ControleFincanceiro.dto;
 
-import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.MetodoPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.StatusPagamento;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,12 +1,10 @@
 package TCC.ControleFincanceiro.entity;
 
 
-import TCC.ControleFincanceiro.entity.enumerated.PlanoUsuario;
-import TCC.ControleFincanceiro.entity.enumerated.StatusUsuario;
+import TCC.ControleFincanceiro.entity.enumerated.usuario.PlanoUsuario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 

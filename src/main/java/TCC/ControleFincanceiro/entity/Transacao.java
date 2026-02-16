@@ -1,7 +1,7 @@
 package TCC.ControleFincanceiro.entity;
 
-import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.MetodoPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.transacao.StatusPagamento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
