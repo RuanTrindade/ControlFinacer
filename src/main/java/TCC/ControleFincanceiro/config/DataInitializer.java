@@ -1,11 +1,11 @@
 package TCC.ControleFincanceiro.config;
 
 import TCC.ControleFincanceiro.entity.*;
-import TCC.ControleFincanceiro.entity.enumerated.investimento.TipoInvestimento;
-import TCC.ControleFincanceiro.entity.enumerated.transacao.MetodoPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.transacao.StatusPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.transacao.TipoTransacao;
-import TCC.ControleFincanceiro.entity.enumerated.usuario.PlanoUsuario;
+import TCC.ControleFincanceiro.entity.enumerated.TipoInvestimento;
+import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
+import TCC.ControleFincanceiro.entity.enumerated.PlanoUsuario;
 import TCC.ControleFincanceiro.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

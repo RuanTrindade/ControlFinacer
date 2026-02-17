@@ -1,7 +1,7 @@
 package TCC.ControleFincanceiro.repository;
 
 import TCC.ControleFincanceiro.entity.Categoria;
-import TCC.ControleFincanceiro.entity.enumerated.transacao.TipoTransacao;
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package TCC.ControleFincanceiro.dto.investimento;
+package TCC.ControleFincanceiro.dto;
 
 
 import java.math.BigDecimal;

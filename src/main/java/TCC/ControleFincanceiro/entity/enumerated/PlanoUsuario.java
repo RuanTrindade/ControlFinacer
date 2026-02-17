@@ -1,4 +1,4 @@
-package TCC.ControleFincanceiro.entity.enumerated.usuario;
+package TCC.ControleFincanceiro.entity.enumerated;
 
 public enum PlanoUsuario {
     START,

@@ -1,4 +1,4 @@
-package TCC.ControleFincanceiro.entity.enumerated.investimento;
+package TCC.ControleFincanceiro.entity.enumerated;
 
 public enum TipoInvestimento {
     APORTE,
