@@ -12,6 +12,8 @@ import java.util.List;
 
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
+    List<Transacao> findByUsuarioId(Long usuarioId);
+
     @Query("""
            SELECT t FROM Transacao t
            WHERE (:usuarioId IS NULL OR t.usuario.id = :usuarioId)

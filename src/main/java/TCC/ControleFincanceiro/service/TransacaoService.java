@@ -2,6 +2,7 @@ package TCC.ControleFincanceiro.service;
 
 
 import TCC.ControleFincanceiro.dto.TransacaoCriarDTO;
+import TCC.ControleFincanceiro.dto.TransacaoResumoDTO;
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.Transacao;
 import TCC.ControleFincanceiro.entity.Usuario;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -50,5 +53,24 @@ public class TransacaoService {
         transacao.setData(dto.data());
 
         return transacaoRepository.save(transacao);
+    }
+
+
+
+    public List<TransacaoResumoDTO> listarPorUsuario(Long usuarioId) {
+
+        List<Transacao> transacoes = transacaoRepository.findByUsuarioId(usuarioId);
+
+        return transacoes.stream()
+                .map(t -> new TransacaoResumoDTO(
+                        t.getDescricao(),
+                        t.getCategoria().getTipo().name(),
+                        t.getCategoria().getNome(),
+                        t.getValor(),
+                        t.getMetodoPagamento(),
+                        t.getStatus(),
+                        t.getData()
+                ))
+                .toList();
     }
 }
