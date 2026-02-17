@@ -25,7 +25,7 @@ public class TransacaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nova);
     }
 
-    @GetMapping("usuario/{usuarioId}")
+    @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<TransacaoResumoDTO>> listarPorUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(transacaoService.listarPorUsuario(usuarioId));
     }
