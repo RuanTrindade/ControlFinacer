@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,7 +24,7 @@ public class TransacaoService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
 
-    public Transacao criarTransacao(TransacaoCriarDTO dto) {
+    public TransacaoResumoDTO criarTransacao(TransacaoCriarDTO dto) {
 
         Usuario usuario = usuarioRepository.findById(dto.usuarioId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -34,7 +32,7 @@ public class TransacaoService {
         Categoria categoria = categoriaRepository.findById(dto.categoriaId())
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-        if (dto.valor().compareTo(BigDecimal.ZERO) <= 0) {
+        if (dto.valor() == null || dto.valor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Valor deve ser maior que zero");
         }
 
@@ -54,12 +52,22 @@ public class TransacaoService {
         transacao.setStatus(dto.status());
         transacao.setData(dto.data());
 
-        return transacaoRepository.save(transacao);
+        Transacao salvar = transacaoRepository.save(transacao);
+
+        return new TransacaoResumoDTO(
+                salvar.getDescricao(),
+                salvar.getCategoria().getTipo().name(),
+                salvar.getCategoria().getNome(),
+                salvar.getValor(),
+                salvar.getMetodoPagamento(),
+                salvar.getStatus(),
+                salvar.getData()
+        );
     }
 
 
 
-    public Transacao atualizarTransacao(Long trasacaoId, Long usuarioId, TransacaoAtualizarDTO dto) {
+    public TransacaoResumoDTO atualizarTransacao(Long trasacaoId, Long usuarioId, TransacaoAtualizarDTO dto) {
 
         Transacao transacao = transacaoRepository.findById(trasacaoId)
                 .orElseThrow(() -> new RuntimeException("Transação não encontrada"));
@@ -84,7 +92,17 @@ public class TransacaoService {
         transacao.setData(dto.data());
         transacao.setCategoria(categoria);
 
-        return transacaoRepository.save(transacao);
+        Transacao salva = transacaoRepository.save(transacao);
+
+        return new TransacaoResumoDTO(
+                salva.getDescricao(),
+                salva.getCategoria().getTipo().name(),
+                salva.getCategoria().getNome(),
+                salva.getValor(),
+                salva.getMetodoPagamento(),
+                salva.getStatus(),
+                salva.getData()
+        );
     }
 
 

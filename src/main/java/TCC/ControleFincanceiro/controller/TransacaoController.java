@@ -21,13 +21,13 @@ public class TransacaoController {
     private final TransacaoService transacaoService;
 
     @PostMapping
-    public ResponseEntity<Transacao> criarTransacao(@RequestBody TransacaoCriarDTO dto) {
-        Transacao nova = transacaoService.criarTransacao(dto);
+    public ResponseEntity<TransacaoResumoDTO> criarTransacao(@RequestBody TransacaoCriarDTO dto) {
+        TransacaoResumoDTO nova = transacaoService.criarTransacao(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nova);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Transacao> atualizarTransacao(
+    public ResponseEntity<TransacaoResumoDTO> atualizarTransacao(
             @PathVariable Long id,
             @RequestParam Long usuarioId,
             @RequestBody TransacaoAtualizarDTO dto
