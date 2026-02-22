@@ -1,6 +1,7 @@
 package TCC.ControleFincanceiro.service;
 
 
+import TCC.ControleFincanceiro.dto.TransacaoAtualizarDTO;
 import TCC.ControleFincanceiro.dto.TransacaoCriarDTO;
 import TCC.ControleFincanceiro.dto.TransacaoResumoDTO;
 import TCC.ControleFincanceiro.entity.Categoria;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +56,37 @@ public class TransacaoService {
 
         return transacaoRepository.save(transacao);
     }
+
+
+
+    public Transacao atualizarTransacao(Long trasacaoId, Long usuarioId, TransacaoAtualizarDTO dto) {
+
+        Transacao transacao = transacaoRepository.findById(trasacaoId)
+                .orElseThrow(() -> new RuntimeException("Transação não encontrada"));
+
+        if (!transacao.getUsuario().getId().equals(usuarioId)) {
+            throw new RuntimeException("Acesso negado");
+        }
+
+        Categoria categoria = categoriaRepository.findById(dto.categoriaId())
+                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+        if (!categoria.getPadraoSistema() &&
+                (categoria.getUsuario() == null
+                || !categoria.getUsuario().getId().equals(usuarioId))){
+            throw new RuntimeException("Categoria inválida para este usuario");
+        }
+
+        transacao.setDescricao(dto.descricao());
+        transacao.setValor(dto.valor());
+        transacao.setMetodoPagamento(dto.metodo());
+        transacao.setStatus(dto.status());
+        transacao.setData(dto.data());
+        transacao.setCategoria(categoria);
+
+        return transacaoRepository.save(transacao);
+    }
+
 
 
 
