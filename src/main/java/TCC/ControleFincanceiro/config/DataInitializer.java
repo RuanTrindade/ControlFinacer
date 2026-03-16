@@ -1,11 +1,7 @@
 package TCC.ControleFincanceiro.config;
 
 import TCC.ControleFincanceiro.entity.*;
-import TCC.ControleFincanceiro.entity.enumerated.TipoInvestimento;
-import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
-import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
-import TCC.ControleFincanceiro.entity.enumerated.PlanoUsuario;
+import TCC.ControleFincanceiro.entity.enumerated.*;
 import TCC.ControleFincanceiro.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -165,7 +161,7 @@ public class DataInitializer implements CommandLineRunner {
         Investimento invest = new Investimento();
         invest.setNome("CDB Nubank");
         invest.setTaxaAtual(BigDecimal.valueOf(1.00));
-        invest.setTipo("RENDA_FIXA");
+        invest.setTipo(TipoAtivo.valueOf("RENDA_FIXA"));
         invest.setUsuario(usuario);
         investimentoRepo.save(invest);
 

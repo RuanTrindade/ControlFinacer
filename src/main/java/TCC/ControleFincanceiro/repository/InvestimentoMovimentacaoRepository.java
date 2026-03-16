@@ -1,6 +1,5 @@
 package TCC.ControleFincanceiro.repository;
 
-import TCC.ControleFincanceiro.entity.Investimento;
 import TCC.ControleFincanceiro.entity.InvestimentoMovimentacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

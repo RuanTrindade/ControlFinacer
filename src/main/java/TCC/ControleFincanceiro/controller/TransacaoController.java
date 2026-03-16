@@ -1,10 +1,9 @@
 package TCC.ControleFincanceiro.controller;
 
 
-import TCC.ControleFincanceiro.dto.TransacaoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.TransacaoCriarDTO;
-import TCC.ControleFincanceiro.dto.TransacaoResumoDTO;
-import TCC.ControleFincanceiro.entity.Transacao;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoAtualizarDTO;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoCriarDTO;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoResumoDTO;
 import TCC.ControleFincanceiro.service.TransacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,5 +39,14 @@ public class TransacaoController {
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<TransacaoResumoDTO>> listarPorUsuario(@PathVariable Long usuarioId) {
         return ResponseEntity.ok(transacaoService.listarPorUsuario(usuarioId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarTransacao(
+            @PathVariable Long id,
+            @RequestParam Long usuarioId
+    ) {
+        transacaoService.deletarTransacao(id, usuarioId);
+        return ResponseEntity.noContent().build();
     }
 }

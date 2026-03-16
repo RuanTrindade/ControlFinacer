@@ -1,9 +1,9 @@
 package TCC.ControleFincanceiro.service;
 
 
-import TCC.ControleFincanceiro.dto.TransacaoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.TransacaoCriarDTO;
-import TCC.ControleFincanceiro.dto.TransacaoResumoDTO;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoAtualizarDTO;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoCriarDTO;
+import TCC.ControleFincanceiro.dto.transacao.TransacaoResumoDTO;
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.Transacao;
 import TCC.ControleFincanceiro.entity.Usuario;
@@ -107,6 +107,19 @@ public class TransacaoService {
 
 
 
+    public void deletarTransacao(Long transacaoId, Long usuarioId) {
+
+        Transacao transacao = transacaoRepository.findById(transacaoId)
+                .orElseThrow(() -> new RuntimeException("Transação não encontrada"));
+
+        if (!transacao.getUsuario().getId().equals(usuarioId)) {
+            throw new RuntimeException("Acesso negado");
+        }
+
+        transacaoRepository.delete(transacao);
+    }
+
+
 
     public List<TransacaoResumoDTO> listarPorUsuario(Long usuarioId) {
 
@@ -124,4 +137,7 @@ public class TransacaoService {
                 ))
                 .toList();
     }
+
+
+
 }
