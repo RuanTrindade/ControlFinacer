@@ -35,4 +35,28 @@ public interface InvestimentoMovimentacaoRepository extends JpaRepository<Invest
        """)
     BigDecimal calcularSaldoTotalUsuario(Long usuarioId);
 
+    @Query("""
+    SELECT COALESCE(SUM(m.valor), 0)
+    FROM InvestimentoMovimentacao m
+    WHERE m.investimento.id = :investimentoId
+    AND m.tipo = 'RENDIMENTO'
+""")
+    BigDecimal totalRendimento(Long investimentoId);
+
+    @Query("""
+    SELECT COALESCE(SUM(m.valor), 0)
+    FROM InvestimentoMovimentacao m
+    WHERE m.investimento.id = :investimentoId
+    AND m.tipo = 'APORTE'
+""")
+    BigDecimal totalAportes(Long investimentoId);
+
+    @Query("""
+    SELECT COALESCE(SUM(m.valor), 0)
+    FROM InvestimentoMovimentacao m
+    WHERE m.investimento.id = :investimentoId
+    AND m.tipo = 'RESGATE'
+""")
+    BigDecimal totalResgates(Long investimentoId);
+
 }

@@ -2,10 +2,12 @@ package TCC.ControleFincanceiro.service;
 
 import TCC.ControleFincanceiro.dto.investimento.InvestimentoAtualizarDTO;
 import TCC.ControleFincanceiro.dto.investimento.InvestimentoCriarDTO;
+import TCC.ControleFincanceiro.dto.investimento.InvestimentoEstatisticaDTO;
 import TCC.ControleFincanceiro.dto.investimento.InvestimentoResumoDTO;
 import TCC.ControleFincanceiro.entity.Investimento;
 import TCC.ControleFincanceiro.entity.Usuario;
 import TCC.ControleFincanceiro.entity.enumerated.TipoAtivo;
+import TCC.ControleFincanceiro.repository.InvestimentoMovimentacaoRepository;
 import TCC.ControleFincanceiro.repository.InvestimentoRepository;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class InvestimentoService {
 
     private final InvestimentoRepository investimentoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final InvestimentoMovimentacaoRepository movimentacaoRepository;
 
     public InvestimentoResumoDTO criarInvestimento(InvestimentoCriarDTO dto) {
 
@@ -80,6 +83,26 @@ public class InvestimentoService {
                 investimento.getNome(),
                 investimento.getTipo(),
                 investimento.getTaxaAtual()
+        );
+    }
+
+
+    public InvestimentoEstatisticaDTO obterEstatisticas(Long investimentoId) {
+
+        Investimento investimento = investimentoRepository.findById(investimentoId)
+                .orElseThrow(() -> new RuntimeException("Investimento não encontrado"));
+
+        BigDecimal aportes = movimentacaoRepository.totalAportes(investimentoId);
+        BigDecimal resgates = movimentacaoRepository.totalResgates(investimentoId);
+        BigDecimal rendimento = movimentacaoRepository.totalRendimento(investimentoId);
+        BigDecimal saldo = movimentacaoRepository.calcularSaldo(investimentoId);
+
+        return new InvestimentoEstatisticaDTO(
+                investimento.getNome(),
+                aportes,
+                resgates,
+                rendimento,
+                saldo
         );
     }
 }

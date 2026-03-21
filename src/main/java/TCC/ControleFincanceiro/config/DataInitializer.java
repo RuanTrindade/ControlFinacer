@@ -101,6 +101,29 @@ public class DataInitializer implements CommandLineRunner {
         cat5.setUsuario(usuario); // categoria personalizada do usuário
         categoriaRepo.save(cat5);
 
+        Categoria cat6 = new Categoria();
+        cat6.setNome("Resgate de Investimento");
+        cat6.setIcone("bi-cash");
+        cat6.setCor("#00C897");
+        cat6.setTipo(TipoTransacao.RECEITA);
+        cat6.setPadraoSistema(true);
+        cat6.setUsuario(null);
+        categoriaRepo.save(cat6);
+
+        Categoria catObj = new Categoria();
+        catObj.setNome("Objetivos");
+        catObj.setTipo(TipoTransacao.DESPESA);
+        catObj.setPadraoSistema(true);
+        catObj.setUsuario(null);
+        categoriaRepo.save(catObj);
+
+        Categoria catResgate = new Categoria();
+        catResgate.setNome("Resgate de Objetivo");
+        catResgate.setTipo(TipoTransacao.RECEITA);
+        catResgate.setPadraoSistema(true);
+        catResgate.setUsuario(null);
+        categoriaRepo.save(catResgate);
+
         // --- TRANSAÇÕES ---
         Transacao t1 = new Transacao();
         t1.setDescricao("Salário Mensal");

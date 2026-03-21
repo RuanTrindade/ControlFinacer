@@ -22,6 +22,7 @@ public class Objetivo {
     private LocalDate dataFinal;
     private String cor;
     private String icone;
+    private Boolean finalizado = false;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)

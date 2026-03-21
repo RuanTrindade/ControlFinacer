@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -48,5 +49,11 @@ public class TransacaoController {
     ) {
         transacaoService.deletarTransacao(id, usuarioId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/saldo/{usuarioId}")
+    public ResponseEntity<BigDecimal> saldo(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(transacaoService.obterSaldoUsuario(usuarioId));
     }
 }

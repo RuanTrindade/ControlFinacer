@@ -139,5 +139,8 @@ public class TransacaoService {
     }
 
 
+    public BigDecimal obterSaldoUsuario(Long usuarioId) {
+        return transacaoRepository.calcularSaldoUsuario(usuarioId);
+    }
 
 }

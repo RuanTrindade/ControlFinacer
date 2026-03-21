@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,13 +50,39 @@ public class InvestimentoMovimentacaoService {
         movimentacaoRepository.save(movimentacao);
 
         if (tipo == TipoInvestimento.APORTE) {
-            gerarTransacao(investimento, valor, "Aporte em investimento: " + investimento.getNome(), "Investimento");
+
+            BigDecimal saldoUsuario = transacaoRepository.calcularSaldoUsuario(
+                    investimento.getUsuario().getId()
+            );
+
+            if (valor.compareTo(saldoUsuario) > 0) {
+                throw new RuntimeException("Saldo insuficiente para investimento");
+            }
+
+            gerarTransacao(
+                    investimento,
+                    valor,
+                    "Aporte em investimento: " + investimento.getNome(),
+                    "Investimentos"
+            );
         }
+
 
         if (tipo == TipoInvestimento.RESGATE) {
-            gerarTransacao(investimento, valor, "Resgate de investimento: " + investimento.getNome(), "Resgate de Investimento");
-        }
 
+            BigDecimal saldoInvestimento = movimentacaoRepository.calcularSaldo(investimentoId);
+
+            if (valor.compareTo(saldoInvestimento) > 0) {
+                throw new RuntimeException("Saldo insuficiente no investimento");
+            }
+
+            gerarTransacao(
+                    investimento,
+                    valor,
+                    "Resgate de investimento: " + investimento.getNome(),
+                    "Resgate de Investimento"
+            );
+        }
         return new InvestimentoMovimentacaoDTO(
                 investimento.getNome(),
                 movimentacao.getTipo(),
@@ -80,5 +107,21 @@ public class InvestimentoMovimentacaoService {
         transacao.setData(LocalDate.now());
 
         transacaoRepository.save(transacao);
+    }
+
+
+
+    public List<InvestimentoMovimentacaoDTO> listarMovimentacoes(Long investimentoId) {
+
+        return movimentacaoRepository
+                .findByInvestimentoIdOrderByDataAsc(investimentoId)
+                .stream()
+                .map(m -> new InvestimentoMovimentacaoDTO(
+                        m.getInvestimento().getNome(),
+                        m.getTipo(),
+                        m.getValor(),
+                        m.getData()
+                ))
+                .toList();
     }
 }

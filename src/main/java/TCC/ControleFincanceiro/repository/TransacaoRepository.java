@@ -38,4 +38,16 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             BigDecimal valorMax,
             String descricao
     );
+
+    @Query("""
+    SELECT COALESCE(SUM(
+        CASE 
+            WHEN t.categoria.tipo = 'RECEITA' THEN t.valor
+            WHEN t.categoria.tipo = 'DESPESA' THEN -t.valor
+        END
+    ), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+""")
+    BigDecimal calcularSaldoUsuario(Long usuarioId);
 }
