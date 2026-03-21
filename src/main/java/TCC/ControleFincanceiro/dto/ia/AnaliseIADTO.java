@@ -4,8 +4,9 @@ import java.util.List;
 
 public record AnaliseIADTO(
         String resumo,
-        List<String> pontosAtencao,
-        List<String> sugestoes,
-        String previsao,
-        String nivelFinanceiro
+        String nivelFinanceiro,
+        List<AlertaDTO> alertas,
+        List<SugestaoDTO> sugestoes,
+        List<String> insights,
+        PrevisaoDTO previsao
 ) {}

@@ -1,6 +1,6 @@
 package TCC.ControleFincanceiro.service;
 
-import TCC.ControleFincanceiro.dto.ia.AnaliseIADTO;
+import TCC.ControleFincanceiro.dto.ia.*;
 import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoCategoriaResumoDTO;
 import TCC.ControleFincanceiro.entity.Objetivo;
 import TCC.ControleFincanceiro.repository.InvestimentoMovimentacaoRepository;
@@ -8,9 +8,12 @@ import TCC.ControleFincanceiro.repository.ObjetivoRepository;
 import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +24,10 @@ public class AnaliseIAService {
     private final ObjetivoRepository objetivoRepository;
     private final InvestimentoMovimentacaoRepository investimentoRepository;
 
+    // ==============================
+    // MÉTODO PRINCIPAL
+    // ==============================
     public AnaliseIADTO analisar(Long usuarioId) {
-
-
 
         BigDecimal receita = transacaoRepository.totalReceitas(usuarioId);
         BigDecimal despesas = transacaoRepository.totalDespesas(usuarioId);
@@ -34,24 +38,28 @@ public class AnaliseIAService {
 
         List<Objetivo> objetivos = objetivoRepository.findByUsuarioId(usuarioId);
 
-
-
         StringBuilder contexto = new StringBuilder();
 
-        contexto.append("DADOS FINANCEIROS DO USUÁRIO:\n");
-        contexto.append("Receita total: ").append(receita).append("\n");
-        contexto.append("Despesas totais: ").append(despesas).append("\n");
+        contexto.append("Receita: ").append(receita).append("\n");
+        contexto.append("Despesas: ").append(despesas).append("\n");
         contexto.append("Investimentos: ").append(investimentos).append("\n\n");
 
         contexto.append("CATEGORIAS:\n");
 
         for (PlanejamentoCategoriaResumoDTO c : categorias) {
+            BigDecimal diff = c.gasto().subtract(c.planejado());
+
             contexto.append("- ")
                     .append(c.categoria())
-                    .append(": Planejado ")
+                    .append(": limite ")
                     .append(c.planejado())
-                    .append(", Gasto ")
+                    .append(", gasto ")
                     .append(c.gasto())
+                    .append(", diferenca ")
+                    .append(diff)
+                    .append(diff.compareTo(BigDecimal.ZERO) < 0
+                            ? " (economia de R$" + diff.abs() + ")"
+                            : " (excesso de R$" + diff + ")")
                     .append("\n");
         }
 
@@ -65,70 +73,169 @@ public class AnaliseIAService {
                     .append("\n");
         }
 
-
-
         String prompt = """
-Você é um especialista em educação financeira pessoal.
+Você é um consultor financeiro.
 
-Analise os dados do usuário abaixo e gere uma resposta em JSON com os seguintes campos:
+Responda APENAS em JSON válido, seguindo EXATAMENTE esta estrutura:
 
 {
-  "resumo": "resumo geral da situação financeira",
-  "pontosAtencao": ["lista de problemas encontrados"],
-  "sugestoes": ["lista de sugestões práticas"],
-  "previsao": "projeção futura baseada no comportamento atual",
-  "nivelFinanceiro": "iniciante, intermediário ou avançado"
+  "resumo": "",
+  "nivelFinanceiro": "",
+  "alertas": [
+    {
+      "categoria": "",
+      "gasto": 0,
+      "limite": 0,
+      "excesso": 0,
+      "mensagem": ""
+    }
+  ],
+  "sugestoes": [
+    {
+      "descricao": "",
+      "economiaPotencial": 0
+    }
+  ],
+  "insights": [
+    ""
+  ],
+  "previsao": {
+    "economiaMensal": 0,
+    "tempoParaObjetivo": ""
+  }
 }
 
-REGRAS:
-- Seja direto e claro
-- Use linguagem simples
-- Dê sugestões práticas
-- Identifique excessos de gasto
-- Considere objetivos do usuário
+REGRAS OBRIGATÓRIAS:
+
+- Use exatamente os nomes dos campos acima
+- NÃO use "diferenca", use "excesso"
+- NÃO crie novos campos
+- NÃO mude a estrutura
+- insights deve ser lista de strings (não objetos)
+- alertas deve conter mensagem obrigatoriamente
 
 DADOS:
 """ + contexto;
 
-        // ==============================
-        // 4. CHAMAR IA
-        // ==============================
-
         String resposta = chamarIA(prompt);
 
-        // ==============================
-        // 5. CONVERTER JSON → DTO
-        // ==============================
+        System.out.println("=== RESPOSTA IA ===");
+        System.out.println(resposta);
 
-        return converterParaDTO(resposta);
+        String jsonLimpo;
+        try {
+            jsonLimpo = extrairJson(resposta);
+        } catch (Exception e) {
+            return respostaErro("Erro ao interpretar resposta da IA.");
+        }
+
+        AnaliseIADTO dto;
+        try {
+            dto = converterParaDTO(jsonLimpo);
+        } catch (Exception e) {
+            return respostaErro("Erro ao converter resposta da IA.");
+        }
+
+        return completarCampos(dto);
     }
 
     // ==============================
-    // MOCK (substituir pela API real)
+    // CHAMADA IA (OLLAMA)
     // ==============================
     private String chamarIA(String prompt) {
 
-        System.out.println(prompt); // debug
+        RestTemplate restTemplate = new RestTemplate();
 
-        return """
-        {
-          "resumo": "Você está gastando mais do que deveria em algumas categorias.",
-          "pontosAtencao": ["Gasto alto em alimentação"],
-          "sugestoes": ["Reduzir gastos em 20% nessa categoria"],
-          "previsao": "Você pode economizar R$500/mês",
-          "nivelFinanceiro": "intermediario"
-        }
-        """;
+        String url = "http://localhost:11434/api/generate";
+
+        Map<String, Object> body = Map.of(
+                "model", "llama3",
+                "prompt", prompt,
+                "stream", false
+        );
+
+        Map response = restTemplate.postForObject(url, body, Map.class);
+
+        return (String) response.get("response");
     }
 
+    // ==============================
+    // EXTRAIR JSON
+    // ==============================
+    private String extrairJson(String resposta) {
+
+        int inicio = resposta.indexOf("{");
+        int fim = resposta.lastIndexOf("}");
+
+        if (inicio == -1 || fim == -1) {
+            throw new RuntimeException("Sem JSON válido");
+        }
+
+        return resposta.substring(inicio, fim + 1);
+    }
+
+    // ==============================
+    // CONVERTER JSON → DTO
+    // ==============================
     private AnaliseIADTO converterParaDTO(String json) {
-        // aqui você pode usar ObjectMapper depois
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, AnaliseIADTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro JSON: " + json);
+        }
+    }
+
+    // ==============================
+    // COMPLETAR CAMPOS (SEM FORÇAR)
+    // ==============================
+    private AnaliseIADTO completarCampos(AnaliseIADTO dto) {
+
+        String resumo = (dto.resumo() == null || dto.resumo().isBlank())
+                ? "Resumo não gerado pela IA."
+                : dto.resumo();
+
+        String nivel = (dto.nivelFinanceiro() == null || dto.nivelFinanceiro().isBlank())
+                ? "indefinido"
+                : dto.nivelFinanceiro();
+
+        List<String> insights = (dto.insights() == null || dto.insights().isEmpty())
+                ? List.of("Sem insights gerados.")
+                : dto.insights();
+
+        PrevisaoDTO previsao = dto.previsao();
+        if (previsao == null) {
+            previsao = new PrevisaoDTO(BigDecimal.ZERO, "não definido");
+        } else if (previsao.tempoParaObjetivo() == null || previsao.tempoParaObjetivo().isBlank()) {
+            previsao = new PrevisaoDTO(
+                    previsao.economiaMensal() != null ? previsao.economiaMensal() : BigDecimal.ZERO,
+                    "não definido"
+            );
+        }
+
         return new AnaliseIADTO(
-                "Resumo exemplo",
-                List.of("Ponto 1"),
-                List.of("Sugestão 1"),
-                "Previsão exemplo",
-                "Intermediário"
+                resumo,
+                nivel,
+                dto.alertas(),
+                dto.sugestoes(),
+                insights,
+                previsao
+        );
+    }
+
+    // ==============================
+    // ERRO CONTROLADO (NUNCA NULL)
+    // ==============================
+    private AnaliseIADTO respostaErro(String mensagem) {
+
+        return new AnaliseIADTO(
+                mensagem,
+                "indefinido",
+                List.of(),
+                List.of(),
+                List.of("Não foi possível analisar os dados."),
+                new PrevisaoDTO(BigDecimal.ZERO, "não definido")
         );
     }
 }
