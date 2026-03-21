@@ -1,9 +1,7 @@
 package TCC.ControleFincanceiro.service;
 
 
-import TCC.ControleFincanceiro.dto.transacao.TransacaoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.transacao.TransacaoCriarDTO;
-import TCC.ControleFincanceiro.dto.transacao.TransacaoResumoDTO;
+import TCC.ControleFincanceiro.dto.transacao.*;
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.Transacao;
 import TCC.ControleFincanceiro.entity.Usuario;
@@ -14,7 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

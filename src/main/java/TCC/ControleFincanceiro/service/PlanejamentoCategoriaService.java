@@ -129,4 +129,20 @@ public class PlanejamentoCategoriaService {
                 })
                 .toList();
     }
+
+
+    public List<PlanejamentoCategoriaResumoDTO> resumoPorUsuario(Long usuarioId) {
+
+        List<PlanejamentoMensal> planejamentos =
+                planejamentoRepository.findByUsuarioIdOrderByReferenciaDesc(usuarioId);
+
+        if (planejamentos.isEmpty()) {
+            return List.of();
+        }
+
+        // pega o planejamento mais recente
+        PlanejamentoMensal planejamento = planejamentos.get(0);
+
+        return resumo(planejamento.getId());
+    }
 }

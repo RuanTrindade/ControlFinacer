@@ -80,4 +80,40 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             int mes,
             int ano
     );
+
+
+
+    @Query("""
+    SELECT 
+        MONTH(t.data),
+        YEAR(t.data),
+        t.categoria.tipo,
+        SUM(t.valor)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    GROUP BY YEAR(t.data), MONTH(t.data), t.categoria.tipo
+    ORDER BY YEAR(t.data), MONTH(t.data)
+""")
+    List<Object[]> relatorioMensal(Long usuarioId);
+
+
+
+
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.tipo = 'RECEITA'
+""")
+    BigDecimal totalReceitas(Long usuarioId);
+
+
+
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.tipo = 'DESPESA'
+""")
+    BigDecimal totalDespesas(Long usuarioId);
 }
