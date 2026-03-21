@@ -50,4 +50,34 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
     WHERE t.usuario.id = :usuarioId
 """)
     BigDecimal calcularSaldoUsuario(Long usuarioId);
+
+
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.id = :categoriaId
+    AND MONTH(t.data) = :mes
+    AND YEAR(t.data) = :ano
+""")
+    BigDecimal totalPorCategoriaNoMes(Long usuarioId, Long categoriaId, int mes, int ano);
+
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.id IN (
+        SELECT pc.categoria.id
+        FROM PlanejamentoCategoria pc
+        WHERE pc.planejamentoMensal.id = :planejamentoId
+    )
+    AND MONTH(t.data) = :mes
+    AND YEAR(t.data) = :ano
+""")
+    BigDecimal totalDespesasPlanejadas(
+            Long usuarioId,
+            Long planejamentoId,
+            int mes,
+            int ano
+    );
 }

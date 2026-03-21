@@ -12,5 +12,4 @@ public interface PlanejamentoMensalRepository extends JpaRepository<Planejamento
     Optional<PlanejamentoMensal> findByUsuarioIdAndReferencia(Long usuarioId, LocalDate referencia);
 
     List<PlanejamentoMensal> findByUsuarioIdOrderByReferenciaDesc(Long usuarioId);
-
 }
