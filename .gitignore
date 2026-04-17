@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# uploads (arquivos gerados em runtime)
+uploads/

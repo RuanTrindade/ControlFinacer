@@ -41,7 +41,9 @@ public class Transacao {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    private String urlAnexo;
+    @ManyToOne
+    @JoinColumn(name = "comprovante_id")
+    private Comprovante comprovante;
 
 
     //getter e setter
