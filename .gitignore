@@ -34,3 +34,5 @@ build/
 
 # uploads (arquivos gerados em runtime)
 uploads/
+
+application-local.properties

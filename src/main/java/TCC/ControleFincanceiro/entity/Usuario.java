@@ -2,6 +2,7 @@ package TCC.ControleFincanceiro.entity;
 
 
 import TCC.ControleFincanceiro.entity.enumerated.PlanoUsuario;
+import TCC.ControleFincanceiro.entity.enumerated.Provider;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "usuario")
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,15 +23,20 @@ public class Usuario {
 
     @Column(unique = true, nullable = false)
     private String email;
+
     private String senha;
 
     @Enumerated(EnumType.STRING)
     private PlanoUsuario plano;
 
-    //@Enumerated(EnumType.STRING)
-    //private StatusUsuario status;
-
     private LocalDateTime dataCadastro = LocalDateTime.now();
 
 
+    @Column(unique = true, nullable = true)
+    private String googleId;
+
+    private String fotoUrl;
+
+    @Enumerated(EnumType.STRING)
+    private Provider provider; // LOCAL ou GOOGLE
 }
