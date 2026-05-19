@@ -1,13 +1,11 @@
 package TCC.ControleFincanceiro.entity;
 
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
 
 @Getter
 @Setter
@@ -33,4 +31,8 @@ public class ObjetivoDeposito {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+
+    @OneToOne
+    @JoinColumn(name = "transacao_id")
+    private Transacao transacao;
 }

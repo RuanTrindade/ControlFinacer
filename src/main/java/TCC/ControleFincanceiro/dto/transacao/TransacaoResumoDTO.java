@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record TransacaoResumoDTO(
-        String descricao,
+        Long id, String descricao,
         String tipo,
         String categoria,
         BigDecimal valor,

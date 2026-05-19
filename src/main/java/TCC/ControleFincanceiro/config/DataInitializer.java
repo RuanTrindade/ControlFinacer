@@ -23,15 +23,18 @@ public class DataInitializer implements CommandLineRunner {
     private final PlanejamentoMensalRepository planejamentoMensalRepo;
     private final PlanejamentoCategoriaRepository planejamentoCategoriaRepo;
 
-    public DataInitializer(UsuarioRepository usuarioRepo,
-                           CategoriaRepository categoriaRepo,
-                           TransacaoRepository transacaoRepo,
-                           ObjetivoRepository objetivoRepo,
-                           ObjetivoDepositoRepository objetivoDepositoRepo,
-                           InvestimentoRepository investimentoRepo,
-                           InvestimentoMovimentacaoRepository investimentoMovimentacaoRepo,
-                           PlanejamentoMensalRepository planejamentoMensalRepo,
-                           PlanejamentoCategoriaRepository planejamentoCategoriaRepo) {
+    public DataInitializer(
+            UsuarioRepository usuarioRepo,
+            CategoriaRepository categoriaRepo,
+            TransacaoRepository transacaoRepo,
+            ObjetivoRepository objetivoRepo,
+            ObjetivoDepositoRepository objetivoDepositoRepo,
+            InvestimentoRepository investimentoRepo,
+            InvestimentoMovimentacaoRepository investimentoMovimentacaoRepo,
+            PlanejamentoMensalRepository planejamentoMensalRepo,
+            PlanejamentoCategoriaRepository planejamentoCategoriaRepo
+    ) {
+
         this.usuarioRepo = usuarioRepo;
         this.categoriaRepo = categoriaRepo;
         this.transacaoRepo = transacaoRepo;
@@ -44,180 +47,272 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
-        // --- USUÁRIO ---
+        // =====================================
+        // USUÁRIO
+        // =====================================
+
         Usuario usuario = new Usuario();
         usuario.setNome("Ruan Teste");
         usuario.setEmail("ruan@email.com");
         usuario.setSenha("123456");
-        usuario.setPlano(PlanoUsuario.valueOf("START"));
+        usuario.setPlano(PlanoUsuario.START);
         usuario.setDataCadastro(LocalDateTime.now());
+
         usuarioRepo.save(usuario);
 
-        // --- CATEGORIAS ---
-        Categoria cat1 = new Categoria();
-        cat1.setNome("Alimentação");
-        cat1.setIcone("bi-basket");
-        cat1.setCor("#FF6B6B");
-        cat1.setTipo(TipoTransacao.valueOf("DESPESA"));
-        cat1.setPadraoSistema(true);
-        cat1.setUsuario(null); // categoria de sistema
-        categoriaRepo.save(cat1);
+        // =====================================
+        // CATEGORIAS
+        // =====================================
 
-        Categoria cat2 = new Categoria();
-        cat2.setNome("Transporte");
-        cat2.setIcone("bi-car-front");
-        cat2.setCor("#4D96FF");
-        cat2.setTipo(TipoTransacao.valueOf("DESPESA"));
-        cat2.setPadraoSistema(true);
-        cat2.setUsuario(null);
-        categoriaRepo.save(cat2);
+        Categoria alimentacao = new Categoria();
+        alimentacao.setNome("Alimentação");
+        alimentacao.setIcone("bi-basket");
+        alimentacao.setCor("#FF6B6B");
+        alimentacao.setTipo(TipoTransacao.DESPESA);
+        alimentacao.setPadraoSistema(true);
 
-        Categoria cat3 = new Categoria();
-        cat3.setNome("Salário");
-        cat3.setIcone("bi-wallet");
-        cat3.setCor("#00C897");
-        cat3.setTipo(TipoTransacao.valueOf("RECEITA"));
-        cat3.setPadraoSistema(true);
-        cat3.setUsuario(null);
-        categoriaRepo.save(cat3);
+        categoriaRepo.save(alimentacao);
 
-        Categoria cat4 = new Categoria();
-        cat4.setNome("Investimentos");
-        cat4.setIcone("bi-graph-up");
-        cat4.setCor("#8338EC");
-        cat4.setTipo(TipoTransacao.valueOf("DESPESA"));
-        cat4.setPadraoSistema(true);
-        cat4.setUsuario(null);
-        categoriaRepo.save(cat4);
+        Categoria transporte = new Categoria();
+        transporte.setNome("Transporte");
+        transporte.setIcone("bi-car-front");
+        transporte.setCor("#4D96FF");
+        transporte.setTipo(TipoTransacao.DESPESA);
+        transporte.setPadraoSistema(true);
 
-        Categoria cat5 = new Categoria();
-        cat5.setNome("Academia");
-        cat5.setIcone("bi-heart-pulse");
-        cat5.setCor("#F72585");
-        cat5.setTipo(TipoTransacao.valueOf("DESPESA"));
-        cat5.setPadraoSistema(false);
-        cat5.setUsuario(usuario); // categoria personalizada do usuário
-        categoriaRepo.save(cat5);
+        categoriaRepo.save(transporte);
 
-        Categoria cat6 = new Categoria();
-        cat6.setNome("Resgate de Investimento");
-        cat6.setIcone("bi-cash");
-        cat6.setCor("#00C897");
-        cat6.setTipo(TipoTransacao.RECEITA);
-        cat6.setPadraoSistema(true);
-        cat6.setUsuario(null);
-        categoriaRepo.save(cat6);
+        Categoria salario = new Categoria();
+        salario.setNome("Salário");
+        salario.setIcone("bi-wallet");
+        salario.setCor("#00C897");
+        salario.setTipo(TipoTransacao.RECEITA);
+        salario.setPadraoSistema(true);
 
-        Categoria catObj = new Categoria();
-        catObj.setNome("Objetivos");
-        catObj.setTipo(TipoTransacao.DESPESA);
-        catObj.setPadraoSistema(true);
-        catObj.setUsuario(null);
-        categoriaRepo.save(catObj);
+        categoriaRepo.save(salario);
 
-        Categoria catResgate = new Categoria();
-        catResgate.setNome("Resgate de Objetivo");
-        catResgate.setTipo(TipoTransacao.RECEITA);
-        catResgate.setPadraoSistema(true);
-        catResgate.setUsuario(null);
-        categoriaRepo.save(catResgate);
+        Categoria investimentos = new Categoria();
+        investimentos.setNome("Investimentos");
+        investimentos.setIcone("bi-graph-up");
+        investimentos.setCor("#8338EC");
+        investimentos.setTipo(TipoTransacao.DESPESA);
+        investimentos.setPadraoSistema(true);
 
-        // --- TRANSAÇÕES ---
-        Transacao t1 = new Transacao();
-        t1.setDescricao("Salário Mensal");
-        t1.setValor(BigDecimal.valueOf(3000.00));
-        t1.setMetodoPagamento(MetodoPagamento.valueOf("PIX"));
-        t1.setStatus(StatusPagamento.valueOf("PAGO"));
-        t1.setData(LocalDate.of(2026, 2, 1));
-        t1.setCategoria(cat3);
-        t1.setUsuario(usuario);
-        transacaoRepo.save(t1);
+        categoriaRepo.save(investimentos);
 
-        Transacao t2 = new Transacao();
-        t2.setDescricao("Mercado");
-        t2.setValor(BigDecimal.valueOf(450.00));
-        t2.setMetodoPagamento(MetodoPagamento.valueOf("CARTAO_CREDITO"));
-        t2.setStatus(StatusPagamento.valueOf("PAGO"));
-        t2.setData(LocalDate.of(2026, 2, 5));
-        t2.setCategoria(cat1);
-        t2.setUsuario(usuario);
-        transacaoRepo.save(t2);
+        Categoria resgateInvestimento = new Categoria();
+        resgateInvestimento.setNome("Resgate de Investimento");
+        resgateInvestimento.setIcone("bi-cash");
+        resgateInvestimento.setCor("#00C897");
+        resgateInvestimento.setTipo(TipoTransacao.RECEITA);
+        resgateInvestimento.setPadraoSistema(true);
 
-        Transacao t3 = new Transacao();
-        t3.setDescricao("Academia");
-        t3.setValor(BigDecimal.valueOf(120.00));
-        t3.setMetodoPagamento(MetodoPagamento.valueOf("DEBITO"));
-        t3.setStatus(StatusPagamento.valueOf("PAGO"));
-        t3.setData(LocalDate.of(2026, 2, 10));
-        t3.setCategoria(cat5);
-        t3.setUsuario(usuario);
-        transacaoRepo.save(t3);
+        categoriaRepo.save(resgateInvestimento);
 
-        // --- OBJETIVO ---
+        Categoria objetivos = new Categoria();
+        objetivos.setNome("Objetivos");
+        objetivos.setTipo(TipoTransacao.DESPESA);
+        objetivos.setPadraoSistema(true);
+
+        categoriaRepo.save(objetivos);
+
+        Categoria resgateObjetivo = new Categoria();
+        resgateObjetivo.setNome("Resgate de Objetivo");
+        resgateObjetivo.setTipo(TipoTransacao.RECEITA);
+        resgateObjetivo.setPadraoSistema(true);
+
+        categoriaRepo.save(resgateObjetivo);
+
+        Categoria academia = new Categoria();
+        academia.setNome("Academia");
+        academia.setIcone("bi-heart-pulse");
+        academia.setCor("#F72585");
+        academia.setTipo(TipoTransacao.DESPESA);
+        academia.setPadraoSistema(false);
+        academia.setUsuario(usuario);
+
+        categoriaRepo.save(academia);
+
+        // =====================================
+        // TRANSAÇÕES
+        // =====================================
+
+        Transacao salarioTx = new Transacao();
+        salarioTx.setDescricao("Salário Mensal");
+        salarioTx.setValor(BigDecimal.valueOf(30000));
+        salarioTx.setMetodoPagamento(MetodoPagamento.PIX);
+        salarioTx.setStatus(StatusPagamento.PAGO);
+        salarioTx.setData(LocalDate.of(2026, 2, 1));
+        salarioTx.setCategoria(salario);
+        salarioTx.setUsuario(usuario);
+
+        transacaoRepo.save(salarioTx);
+
+        Transacao mercadoTx = new Transacao();
+        mercadoTx.setDescricao("Mercado");
+        mercadoTx.setValor(BigDecimal.valueOf(450));
+        mercadoTx.setMetodoPagamento(MetodoPagamento.CARTAO_CREDITO);
+        mercadoTx.setStatus(StatusPagamento.PAGO);
+        mercadoTx.setData(LocalDate.of(2026, 2, 5));
+        mercadoTx.setCategoria(alimentacao);
+        mercadoTx.setUsuario(usuario);
+
+        transacaoRepo.save(mercadoTx);
+
+        Transacao academiaTx = new Transacao();
+        academiaTx.setDescricao("Academia");
+        academiaTx.setValor(BigDecimal.valueOf(120));
+        academiaTx.setMetodoPagamento(MetodoPagamento.DEBITO);
+        academiaTx.setStatus(StatusPagamento.PAGO);
+        academiaTx.setData(LocalDate.of(2026, 2, 10));
+        academiaTx.setCategoria(academia);
+        academiaTx.setUsuario(usuario);
+
+        transacaoRepo.save(academiaTx);
+
+        // =====================================
+        // OBJETIVO
+        // =====================================
+
         Objetivo objetivo = new Objetivo();
         objetivo.setNome("Viagem Europa");
-        objetivo.setValorObjetivo(BigDecimal.valueOf(10000.00));
+        objetivo.setValorObjetivo(BigDecimal.valueOf(10000));
         objetivo.setDataFinal(LocalDate.of(2026, 12, 31));
         objetivo.setCor("#3A86FF");
         objetivo.setIcone("bi-airplane");
         objetivo.setUsuario(usuario);
+
         objetivoRepo.save(objetivo);
 
-        // --- OBJETIVO DEPOSITO ---
+        // =====================================
+        // DEPÓSITO OBJETIVO 1
+        // =====================================
+
+        Transacao depTx1 = new Transacao();
+        depTx1.setDescricao("Depósito no objetivo: Viagem Europa");
+        depTx1.setValor(BigDecimal.valueOf(1000));
+        depTx1.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
+        depTx1.setStatus(StatusPagamento.PAGO);
+        depTx1.setData(LocalDate.of(2026, 1, 10));
+        depTx1.setCategoria(objetivos);
+        depTx1.setUsuario(usuario);
+
+        transacaoRepo.save(depTx1);
+
         ObjetivoDeposito dep1 = new ObjetivoDeposito();
-        dep1.setValor(BigDecimal.valueOf(1000.00));
+        dep1.setValor(BigDecimal.valueOf(1000));
         dep1.setData(LocalDate.of(2026, 1, 10));
         dep1.setObjetivo(objetivo);
         dep1.setUsuario(usuario);
+        dep1.setTransacao(depTx1);
+
         objetivoDepositoRepo.save(dep1);
 
+        // =====================================
+        // DEPÓSITO OBJETIVO 2
+        // =====================================
+
+        Transacao depTx2 = new Transacao();
+        depTx2.setDescricao("Depósito no objetivo: Viagem Europa");
+        depTx2.setValor(BigDecimal.valueOf(500));
+        depTx2.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
+        depTx2.setStatus(StatusPagamento.PAGO);
+        depTx2.setData(LocalDate.of(2026, 2, 10));
+        depTx2.setCategoria(objetivos);
+        depTx2.setUsuario(usuario);
+
+        transacaoRepo.save(depTx2);
+
         ObjetivoDeposito dep2 = new ObjetivoDeposito();
-        dep2.setValor(BigDecimal.valueOf(500.00));
+        dep2.setValor(BigDecimal.valueOf(500));
         dep2.setData(LocalDate.of(2026, 2, 10));
         dep2.setObjetivo(objetivo);
         dep2.setUsuario(usuario);
+        dep2.setTransacao(depTx2);
+
         objetivoDepositoRepo.save(dep2);
 
-        // --- INVESTIMENTO ---
-        Investimento invest = new Investimento();
-        invest.setNome("CDB Nubank");
-        invest.setTaxaAtual(BigDecimal.valueOf(1.00));
-        invest.setTipo(TipoAtivo.valueOf("RENDA_FIXA"));
-        invest.setUsuario(usuario);
-        investimentoRepo.save(invest);
+        // =====================================
+        // INVESTIMENTO
+        // =====================================
 
-        // --- INVESTIMENTO MOVIMENTAÇÕES ---
+        Investimento investimento = new Investimento();
+        investimento.setNome("CDB Nubank");
+        investimento.setTaxaAtual(BigDecimal.valueOf(1));
+        investimento.setTipo(TipoAtivo.RENDA_FIXA);
+        investimento.setUsuario(usuario);
+
+        investimentoRepo.save(investimento);
+
+        // =====================================
+        // APORTE
+        // =====================================
+
+        Transacao aporteTx = new Transacao();
+        aporteTx.setDescricao("Aporte em investimento: CDB Nubank");
+        aporteTx.setValor(BigDecimal.valueOf(1000));
+        aporteTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
+        aporteTx.setStatus(StatusPagamento.PAGO);
+        aporteTx.setData(LocalDate.of(2026, 1, 1));
+        aporteTx.setCategoria(investimentos);
+        aporteTx.setUsuario(usuario);
+
+        transacaoRepo.save(aporteTx);
+
         InvestimentoMovimentacao mov1 = new InvestimentoMovimentacao();
-        mov1.setValor(BigDecimal.valueOf(1000.00));
+        mov1.setValor(BigDecimal.valueOf(1000));
         mov1.setData(LocalDate.of(2026, 1, 1));
-        mov1.setTipo(TipoInvestimento.valueOf("APORTE"));
-        mov1.setInvestimento(invest);
+        mov1.setTipo(TipoInvestimento.APORTE);
+        mov1.setInvestimento(investimento);
+        mov1.setTransacao(aporteTx);
+
         investimentoMovimentacaoRepo.save(mov1);
 
+        // =====================================
+        // RENDIMENTO
+        // =====================================
+
+        Transacao rendimentoTx = new Transacao();
+        rendimentoTx.setDescricao("Rendimento investimento: CDB Nubank");
+        rendimentoTx.setValor(BigDecimal.valueOf(10));
+        rendimentoTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
+        rendimentoTx.setStatus(StatusPagamento.PAGO);
+        rendimentoTx.setData(LocalDate.of(2026, 2, 1));
+        rendimentoTx.setCategoria(investimentos);
+        rendimentoTx.setUsuario(usuario);
+
+        transacaoRepo.save(rendimentoTx);
+
         InvestimentoMovimentacao mov2 = new InvestimentoMovimentacao();
-        mov2.setValor(BigDecimal.valueOf(10.00));
+        mov2.setValor(BigDecimal.valueOf(10));
         mov2.setData(LocalDate.of(2026, 2, 1));
-        mov2.setTipo(TipoInvestimento.valueOf("RENDIMENTO"));
-        mov2.setInvestimento(invest);
+        mov2.setTipo(TipoInvestimento.RENDIMENTO);
+        mov2.setInvestimento(investimento);
+        mov2.setTransacao(rendimentoTx);
+
         investimentoMovimentacaoRepo.save(mov2);
 
-        // --- PLANEJAMENTO MENSAL ---
-        PlanejamentoMensal pm = new PlanejamentoMensal();
-        pm.setReferencia(LocalDate.of(2026, 2, 1));
-        pm.setRendaMensal(BigDecimal.valueOf(3000.00));
-        pm.setPercentualEconomia(BigDecimal.valueOf(20.00));
-        pm.setUsuario(usuario);
-        planejamentoMensalRepo.save(pm);
+        // =====================================
+        // PLANEJAMENTO
+        // =====================================
 
-        // --- PLANEJAMENTO CATEGORIA ---
+        PlanejamentoMensal planejamento = new PlanejamentoMensal();
+        planejamento.setReferencia(LocalDate.of(2026, 2, 1));
+        planejamento.setRendaMensal(BigDecimal.valueOf(3000));
+        planejamento.setPercentualEconomia(BigDecimal.valueOf(20));
+        planejamento.setUsuario(usuario);
+
+        planejamentoMensalRepo.save(planejamento);
+
         PlanejamentoCategoria pc = new PlanejamentoCategoria();
-        pc.setLimite(BigDecimal.valueOf(600.00));
-        pc.setPlanejamentoMensal(pm);
-        pc.setCategoria(cat1);
+        pc.setLimite(BigDecimal.valueOf(600));
+        pc.setPlanejamentoMensal(planejamento);
+        pc.setCategoria(alimentacao);
+
         planejamentoCategoriaRepo.save(pc);
 
-        System.out.println(">>> Dados iniciais populados no H2 com sucesso!");
+        System.out.println(">>> Dados iniciais populados com sucesso!");
     }
 }

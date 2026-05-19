@@ -4,8 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ObjetivoMovimentacaoDTO(
-        String objetivo,
+
+        Long id,
+        String nomeObjetivo,
         String tipo,
         BigDecimal valor,
         LocalDate data
-) {}
+
+) {
+}

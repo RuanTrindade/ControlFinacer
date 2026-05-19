@@ -28,6 +28,8 @@ public class InvestimentoMovimentacaoService {
     private final TransacaoRepository transacaoRepository;
     private final CategoriaRepository categoriaRepository;
 
+
+
     public InvestimentoMovimentacaoDTO registrarMovimentacao(
             Long investimentoId,
             BigDecimal valor,
@@ -35,69 +37,110 @@ public class InvestimentoMovimentacaoService {
     ) {
 
         Investimento investimento = investimentoRepository.findById(investimentoId)
-                .orElseThrow(() -> new RuntimeException("Investimento não encontrado"));
+                .orElseThrow(() ->
+                        new RuntimeException("Investimento não encontrado"));
 
         if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Valor inválido");
         }
 
         InvestimentoMovimentacao movimentacao = new InvestimentoMovimentacao();
+
         movimentacao.setInvestimento(investimento);
-        movimentacao.setValor(valor);
         movimentacao.setData(LocalDate.now());
         movimentacao.setTipo(tipo);
 
-        movimentacaoRepository.save(movimentacao);
+
 
         if (tipo == TipoInvestimento.APORTE) {
 
-            BigDecimal saldoUsuario = transacaoRepository.calcularSaldoUsuario(
-                    investimento.getUsuario().getId()
-            );
+            BigDecimal saldoUsuario =
+                    transacaoRepository.calcularSaldoUsuario(
+                            investimento.getUsuario().getId()
+                    );
 
-            if (valor.compareTo(saldoUsuario) > 0) {
-                throw new RuntimeException("Saldo insuficiente para investimento");
+            if (saldoUsuario == null) {
+                saldoUsuario = BigDecimal.ZERO;
             }
 
-            gerarTransacao(
+            if (valor.compareTo(saldoUsuario) > 0) {
+                throw new RuntimeException(
+                        "Saldo insuficiente para investimento"
+                );
+            }
+
+            movimentacao.setValor(valor);
+
+            Transacao transacao = gerarTransacao(
                     investimento,
                     valor,
                     "Aporte em investimento: " + investimento.getNome(),
                     "Investimentos"
             );
+
+            movimentacao.setTransacao(transacao);
         }
 
 
-        if (tipo == TipoInvestimento.RESGATE) {
 
-            BigDecimal saldoInvestimento = movimentacaoRepository.calcularSaldo(investimentoId);
+        else if (tipo == TipoInvestimento.RESGATE) {
 
-            if (valor.compareTo(saldoInvestimento) > 0) {
-                throw new RuntimeException("Saldo insuficiente no investimento");
+            BigDecimal saldoInvestimento =
+                    movimentacaoRepository.calcularSaldo(investimentoId);
+
+            if (saldoInvestimento == null) {
+                saldoInvestimento = BigDecimal.ZERO;
             }
 
-            gerarTransacao(
+            if (valor.compareTo(saldoInvestimento) > 0) {
+                throw new RuntimeException(
+                        "Saldo insuficiente no investimento"
+                );
+            }
+
+            movimentacao.setValor(valor.negate());
+
+            Transacao transacao = gerarTransacao(
                     investimento,
                     valor,
                     "Resgate de investimento: " + investimento.getNome(),
                     "Resgate de Investimento"
             );
+
+            movimentacao.setTransacao(transacao);
         }
+
+        else {
+            throw new RuntimeException("Tipo inválido");
+        }
+
+        movimentacaoRepository.save(movimentacao);
+
         return new InvestimentoMovimentacaoDTO(
+                movimentacao.getId(),
                 investimento.getNome(),
                 movimentacao.getTipo(),
-                movimentacao.getValor(),
+                movimentacao.getValor().abs(),
                 movimentacao.getData()
         );
     }
 
-    private void gerarTransacao(Investimento investimento, BigDecimal valor, String descricao, String nomeCategoria) {
+
+
+    private Transacao gerarTransacao(
+            Investimento investimento,
+            BigDecimal valor,
+            String descricao,
+            String nomeCategoria
+    ) {
 
         Categoria categoria = categoriaRepository
                 .findByNomeAndPadraoSistemaTrue(nomeCategoria)
-                .orElseThrow(() -> new RuntimeException("Categoria padrão não encontrada"));
+                .orElseThrow(() ->
+                        new RuntimeException("Categoria padrão não encontrada"));
 
         Transacao transacao = new Transacao();
+
         transacao.setDescricao(descricao);
         transacao.setValor(valor);
         transacao.setCategoria(categoria);
@@ -106,22 +149,93 @@ public class InvestimentoMovimentacaoService {
         transacao.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         transacao.setData(LocalDate.now());
 
-        transacaoRepository.save(transacao);
+        return transacaoRepository.save(transacao);
     }
 
 
 
-    public List<InvestimentoMovimentacaoDTO> listarMovimentacoes(Long investimentoId) {
+    public List<InvestimentoMovimentacaoDTO> listarMovimentacoes(
+            Long investimentoId
+    ) {
 
         return movimentacaoRepository
                 .findByInvestimentoIdOrderByDataAsc(investimentoId)
                 .stream()
                 .map(m -> new InvestimentoMovimentacaoDTO(
+                        m.getId(),
                         m.getInvestimento().getNome(),
                         m.getTipo(),
-                        m.getValor(),
+                        m.getValor().abs(),
                         m.getData()
                 ))
                 .toList();
+    }
+
+
+
+    public InvestimentoMovimentacaoDTO editarMovimentacao(
+            Long movimentacaoId,
+            BigDecimal novoValor
+    ) {
+
+        InvestimentoMovimentacao movimentacao =
+                movimentacaoRepository.findById(movimentacaoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Movimentação não encontrada"));
+
+        if (novoValor == null ||
+                novoValor.compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new RuntimeException("Valor inválido");
+        }
+
+        boolean aporte =
+                movimentacao.getTipo() == TipoInvestimento.APORTE;
+
+
+        movimentacao.setValor(
+                aporte
+                        ? novoValor
+                        : novoValor.negate()
+        );
+
+        movimentacaoRepository.save(movimentacao);
+
+
+        Transacao transacao = movimentacao.getTransacao();
+
+        if (transacao != null) {
+
+            transacao.setValor(novoValor.abs());
+
+            transacaoRepository.save(transacao);
+        }
+
+        return new InvestimentoMovimentacaoDTO(
+                movimentacao.getId(),
+                movimentacao.getInvestimento().getNome(),
+                movimentacao.getTipo(),
+                movimentacao.getValor().abs(),
+                movimentacao.getData()
+        );
+    }
+
+
+    public void deletarMovimentacao(Long movimentacaoId) {
+
+        InvestimentoMovimentacao movimentacao =
+                movimentacaoRepository.findById(movimentacaoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Movimentação não encontrada"));
+
+        Transacao transacao = movimentacao.getTransacao();
+
+        movimentacao.setTransacao(null);
+        movimentacaoRepository.save(movimentacao);
+        movimentacaoRepository.delete(movimentacao);
+
+        if (transacao != null) {
+            transacaoRepository.delete(transacao);
+        }
     }
 }

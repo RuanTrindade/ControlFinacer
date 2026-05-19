@@ -28,35 +28,50 @@ public class ObjetivoDepositoService {
     private final CategoriaRepository categoriaRepository;
 
 
-    public ObjetivoMovimentacaoDTO movimentar(Long objetivoId, BigDecimal valor, String tipo) {
+
+    public ObjetivoMovimentacaoDTO movimentar(
+            Long objetivoId,
+            BigDecimal valor,
+            String tipo
+    ) {
 
         Objetivo objetivo = objetivoRepository.findById(objetivoId)
-                .orElseThrow(() -> new RuntimeException("Objetivo não encontrado"));
+                .orElseThrow(() ->
+                        new RuntimeException("Objetivo não encontrado"));
 
         if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Valor inválido");
         }
 
-        // 🚫 BLOQUEIA SE FINALIZADO
         if (objetivo.getFinalizado()) {
             throw new RuntimeException("Objetivo já finalizado");
         }
 
-        BigDecimal saldoAtual = depositoRepository.calcularTotal(objetivoId);
-        if (saldoAtual == null) saldoAtual = BigDecimal.ZERO;
+        BigDecimal saldoAtual =
+                depositoRepository.calcularTotal(objetivoId);
+
+        if (saldoAtual == null) {
+            saldoAtual = BigDecimal.ZERO;
+        }
 
         ObjetivoDeposito dep = new ObjetivoDeposito();
+
         dep.setObjetivo(objetivo);
         dep.setUsuario(objetivo.getUsuario());
         dep.setData(LocalDate.now());
 
 
+
         if (tipo.equalsIgnoreCase("DEPOSITO")) {
 
-            // valida saldo do usuário
-            BigDecimal saldoUsuario = transacaoRepository.calcularSaldoUsuario(
-                    objetivo.getUsuario().getId()
-            );
+            BigDecimal saldoUsuario =
+                    transacaoRepository.calcularSaldoUsuario(
+                            objetivo.getUsuario().getId()
+                    );
+
+            if (saldoUsuario == null) {
+                saldoUsuario = BigDecimal.ZERO;
+            }
 
             if (valor.compareTo(saldoUsuario) > 0) {
                 throw new RuntimeException("Saldo insuficiente");
@@ -64,38 +79,48 @@ public class ObjetivoDepositoService {
 
             dep.setValor(valor);
 
-            gerarTransacao(
+            Transacao transacao = gerarTransacao(
                     objetivo,
                     valor,
                     "Depósito no objetivo: " + objetivo.getNome(),
                     "Objetivos"
             );
+
+            dep.setTransacao(transacao);
         }
+
 
 
         else if (tipo.equalsIgnoreCase("RETIRADA")) {
 
             if (valor.compareTo(saldoAtual) > 0) {
-                throw new RuntimeException("Saldo insuficiente no objetivo");
+                throw new RuntimeException(
+                        "Saldo insuficiente no objetivo"
+                );
             }
 
             dep.setValor(valor.negate());
 
-            gerarTransacao(
+            Transacao transacao = gerarTransacao(
                     objetivo,
                     valor,
                     "Retirada do objetivo: " + objetivo.getNome(),
                     "Resgate de Objetivo"
             );
+
+            dep.setTransacao(transacao);
         }
 
         else {
-            throw new RuntimeException("Tipo inválido. Use DEPOSITO ou RETIRADA");
+            throw new RuntimeException(
+                    "Tipo inválido. Use DEPOSITO ou RETIRADA"
+            );
         }
 
         depositoRepository.save(dep);
 
         return new ObjetivoMovimentacaoDTO(
+                dep.getId(),
                 objetivo.getNome(),
                 tipo.toUpperCase(),
                 valor,
@@ -104,13 +129,21 @@ public class ObjetivoDepositoService {
     }
 
 
-    private void gerarTransacao(Objetivo objetivo, BigDecimal valor, String descricao, String nomeCategoria) {
+
+    private Transacao gerarTransacao(
+            Objetivo objetivo,
+            BigDecimal valor,
+            String descricao,
+            String nomeCategoria
+    ) {
 
         Categoria categoria = categoriaRepository
                 .findByNomeAndPadraoSistemaTrue(nomeCategoria)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() ->
+                        new RuntimeException("Categoria não encontrada"));
 
         Transacao t = new Transacao();
+
         t.setDescricao(descricao);
         t.setValor(valor);
         t.setCategoria(categoria);
@@ -119,20 +152,92 @@ public class ObjetivoDepositoService {
         t.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         t.setData(LocalDate.now());
 
-        transacaoRepository.save(t);
+        return transacaoRepository.save(t);
     }
+
 
 
     public List<ObjetivoMovimentacaoDTO> listar(Long objetivoId) {
 
-        return depositoRepository.findByObjetivo_IdOrderByDataAsc(objetivoId)
+        return depositoRepository
+                .findByObjetivo_IdOrderByDataAsc(objetivoId)
                 .stream()
                 .map(d -> new ObjetivoMovimentacaoDTO(
+                        d.getId(),
                         d.getObjetivo().getNome(),
-                        d.getValor().compareTo(BigDecimal.ZERO) > 0 ? "DEPOSITO" : "RETIRADA",
+                        d.getValor().compareTo(BigDecimal.ZERO) > 0
+                                ? "DEPOSITO"
+                                : "RETIRADA",
                         d.getValor().abs(),
                         d.getData()
                 ))
                 .toList();
+    }
+
+
+
+    public ObjetivoMovimentacaoDTO editar(
+            Long depositoId,
+            BigDecimal novoValor
+    ) {
+
+        ObjetivoDeposito dep = depositoRepository.findById(depositoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Movimentação não encontrada"));
+
+        if (novoValor == null ||
+                novoValor.compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new RuntimeException("Valor inválido");
+        }
+
+        boolean deposito =
+                dep.getValor().compareTo(BigDecimal.ZERO) > 0;
+
+        // 🔥 atualiza depósito
+        dep.setValor(
+                deposito
+                        ? novoValor
+                        : novoValor.negate()
+        );
+
+        depositoRepository.save(dep);
+
+        // 🔥 atualiza transação vinculada
+        Transacao t = dep.getTransacao();
+
+        if (t != null) {
+
+            t.setValor(novoValor.abs());
+
+            transacaoRepository.save(t);
+        }
+
+        return new ObjetivoMovimentacaoDTO(
+                dep.getId(),
+                dep.getObjetivo().getNome(),
+                deposito ? "DEPOSITO" : "RETIRADA",
+                novoValor.abs(),
+                dep.getData()
+        );
+    }
+
+
+
+    public void deletar(Long depositoId) {
+
+        ObjetivoDeposito dep = depositoRepository.findById(depositoId)
+                .orElseThrow(() ->
+                        new RuntimeException("Movimentação não encontrada"));
+
+        Transacao transacao = dep.getTransacao();
+
+        dep.setTransacao(null);
+        depositoRepository.save(dep);
+        depositoRepository.delete(dep);
+
+        if (transacao != null) {
+            transacaoRepository.delete(transacao);
+        }
     }
 }

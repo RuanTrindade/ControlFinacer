@@ -33,14 +33,14 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/h2-console/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
-                .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(user -> user
-                                .userService(oauth2UserService)
-                        )
-                        .defaultSuccessUrl("/home", true)
-                );
+//                .oauth2Login(oauth -> oauth
+//                        .userInfoEndpoint(user -> user
+//                                .userService(oauth2UserService)
+//                        )
+//                        .defaultSuccessUrl("/home", true)
+                ;
 
         return http.build();
     }

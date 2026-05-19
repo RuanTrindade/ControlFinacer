@@ -25,34 +25,53 @@ public class PlanejamentoCategoriaService {
     private final CategoriaRepository categoriaBaseRepository;
     private final TransacaoRepository transacaoRepository;
 
-    // ==============================
+    // =========================================
     // SALVAR
-    // ==============================
-    public PlanejamentoCategoriaResponseDTO salvar(PlanejamentoCategoriaDTO dto) {
+    // =========================================
 
-        PlanejamentoMensal planejamento = planejamentoRepository.findById(dto.planejamentoId())
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+    public PlanejamentoCategoriaResponseDTO salvar(
+            PlanejamentoCategoriaDTO dto
+    ) {
 
-        Categoria categoria = categoriaBaseRepository.findById(dto.categoriaId())
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(dto.planejamentoId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Planejamento não encontrado"));
+
+        Categoria categoria =
+                categoriaBaseRepository.findById(dto.categoriaId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Categoria não encontrada"));
 
         if (!categoria.getTipo().name().equals("DESPESA")) {
-            throw new RuntimeException("Somente categorias de despesa podem ser planejadas");
+            throw new RuntimeException(
+                    "Somente categorias de despesa podem ser planejadas"
+            );
         }
 
-        BigDecimal somaAtual = categoriaRepository.somaLimites(dto.planejamentoId());
-        if (somaAtual == null) somaAtual = BigDecimal.ZERO;
+        BigDecimal somaAtual =
+                categoriaRepository.somaLimites(dto.planejamentoId());
 
-        if (somaAtual.add(dto.limite()).compareTo(planejamento.getRendaMensal()) > 0) {
-            throw new RuntimeException("Soma das categorias ultrapassa a renda mensal");
+        if (somaAtual == null) {
+            somaAtual = BigDecimal.ZERO;
+        }
+
+        if (somaAtual.add(dto.limite())
+                .compareTo(planejamento.getRendaMensal()) > 0) {
+
+            throw new RuntimeException(
+                    "Soma das categorias ultrapassa a renda mensal"
+            );
         }
 
         PlanejamentoCategoria pc = new PlanejamentoCategoria();
+
         pc.setPlanejamentoMensal(planejamento);
         pc.setCategoria(categoria);
         pc.setLimite(dto.limite());
 
-        PlanejamentoCategoria salvo = categoriaRepository.save(pc);
+        PlanejamentoCategoria salvo =
+                categoriaRepository.save(pc);
 
         return new PlanejamentoCategoriaResponseDTO(
                 salvo.getId(),
@@ -61,12 +80,16 @@ public class PlanejamentoCategoriaService {
         );
     }
 
-    // ==============================
+    // =========================================
     // LISTAR
-    // ==============================
-    public List<PlanejamentoCategoriaResponseDTO> listar(Long planejamentoId) {
+    // =========================================
 
-        return categoriaRepository.findByPlanejamentoMensalId(planejamentoId)
+    public List<PlanejamentoCategoriaResponseDTO> listar(
+            Long planejamentoId
+    ) {
+
+        return categoriaRepository
+                .findByPlanejamentoMensalId(planejamentoId)
                 .stream()
                 .map(pc -> new PlanejamentoCategoriaResponseDTO(
                         pc.getId(),
@@ -76,37 +99,114 @@ public class PlanejamentoCategoriaService {
                 .toList();
     }
 
-    // ==============================
-    // DELETAR
-    // ==============================
-    public void deletar(Long id) {
-        categoriaRepository.deleteById(id);
+    // =========================================
+    // EDITAR
+    // =========================================
+
+    public PlanejamentoCategoriaResponseDTO editar(
+            Long id,
+            BigDecimal novoLimite
+    ) {
+
+        PlanejamentoCategoria pc =
+                categoriaRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Categoria planejada não encontrada"
+                                ));
+
+        if (novoLimite == null ||
+                novoLimite.compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new RuntimeException("Limite inválido");
+        }
+
+        PlanejamentoMensal planejamento =
+                pc.getPlanejamentoMensal();
+
+        BigDecimal somaAtual =
+                categoriaRepository.somaLimites(
+                        planejamento.getId()
+                );
+
+        if (somaAtual == null) {
+            somaAtual = BigDecimal.ZERO;
+        }
+
+        // remove limite antigo
+        somaAtual = somaAtual.subtract(pc.getLimite());
+
+        // adiciona novo limite
+        somaAtual = somaAtual.add(novoLimite);
+
+        if (somaAtual.compareTo(
+                planejamento.getRendaMensal()) > 0) {
+
+            throw new RuntimeException(
+                    "Soma das categorias ultrapassa a renda mensal"
+            );
+        }
+
+        pc.setLimite(novoLimite);
+
+        categoriaRepository.save(pc);
+
+        return new PlanejamentoCategoriaResponseDTO(
+                pc.getId(),
+                pc.getCategoria().getNome(),
+                pc.getLimite()
+        );
     }
 
-    // ==============================
-    // RESUMO (TOP 🔥)
-    // ==============================
-    public List<PlanejamentoCategoriaResumoDTO> resumo(Long planejamentoId) {
+    // =========================================
+    // DELETAR
+    // =========================================
 
-        PlanejamentoMensal planejamento = planejamentoRepository.findById(planejamentoId)
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+    public void deletar(Long id) {
+
+        PlanejamentoCategoria pc =
+                categoriaRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Categoria planejada não encontrada"
+                                ));
+
+        categoriaRepository.delete(pc);
+    }
+
+    // =========================================
+    // RESUMO
+    // =========================================
+
+    public List<PlanejamentoCategoriaResumoDTO> resumo(
+            Long planejamentoId
+    ) {
+
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(planejamentoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Planejamento não encontrado"));
 
         int mes = planejamento.getReferencia().getMonthValue();
         int ano = planejamento.getReferencia().getYear();
         Long usuarioId = planejamento.getUsuario().getId();
 
-        return categoriaRepository.findByPlanejamentoMensalId(planejamentoId)
+        return categoriaRepository
+                .findByPlanejamentoMensalId(planejamentoId)
                 .stream()
                 .map(pc -> {
 
-                    BigDecimal gasto = transacaoRepository.totalPorCategoriaNoMes(
-                            usuarioId,
-                            pc.getCategoria().getId(),
-                            mes,
-                            ano
-                    );
+                    BigDecimal gasto =
+                            transacaoRepository.totalPorCategoriaNoMes(
+                                    usuarioId,
+                                    pc.getCategoria().getId(),
+                                    mes,
+                                    ano
+                            );
 
-                    if (gasto == null) gasto = BigDecimal.ZERO;
+                    if (gasto == null) {
+                        gasto = BigDecimal.ZERO;
+                    }
 
                     BigDecimal planejado = pc.getLimite();
 
@@ -114,13 +214,24 @@ public class PlanejamentoCategoriaService {
 
                     if (gasto.compareTo(planejado) > 0) {
                         status = "ESTOUROU";
-                    } else if (gasto.compareTo(planejado.multiply(BigDecimal.valueOf(0.8))) >= 0) {
+                    }
+
+                    else if (
+                            gasto.compareTo(
+                                    planejado.multiply(
+                                            BigDecimal.valueOf(0.8)
+                                    )
+                            ) >= 0
+                    ) {
                         status = "ATENÇÃO";
-                    } else {
+                    }
+
+                    else {
                         status = "OK";
                     }
 
                     return new PlanejamentoCategoriaResumoDTO(
+                            pc.getId(),
                             pc.getCategoria().getNome(),
                             planejado,
                             gasto,
@@ -130,18 +241,24 @@ public class PlanejamentoCategoriaService {
                 .toList();
     }
 
+    // =========================================
+    // RESUMO POR USUÁRIO
+    // =========================================
 
-    public List<PlanejamentoCategoriaResumoDTO> resumoPorUsuario(Long usuarioId) {
+    public List<PlanejamentoCategoriaResumoDTO> resumoPorUsuario(
+            Long usuarioId
+    ) {
 
         List<PlanejamentoMensal> planejamentos =
-                planejamentoRepository.findByUsuarioIdOrderByReferenciaDesc(usuarioId);
+                planejamentoRepository
+                        .findByUsuarioIdOrderByReferenciaDesc(usuarioId);
 
         if (planejamentos.isEmpty()) {
             return List.of();
         }
 
-        // pega o planejamento mais recente
-        PlanejamentoMensal planejamento = planejamentos.get(0);
+        PlanejamentoMensal planejamento =
+                planejamentos.get(0);
 
         return resumo(planejamento.getId());
     }

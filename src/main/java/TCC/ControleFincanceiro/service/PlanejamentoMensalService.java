@@ -29,97 +29,180 @@ public class PlanejamentoMensalService {
     private final TransacaoRepository transacaoRepository;
 
 
-    public PlanejamentoResumoDTO criar(PlanejamentoCriarDTO dto) {
+    public PlanejamentoResumoDTO criar(
+            PlanejamentoCriarDTO dto
+    ) {
 
         if (planejamentoRepository
-                .findByUsuarioIdAndReferencia(dto.usuarioId(), dto.referencia())
+                .findByUsuarioIdAndReferencia(
+                        dto.usuarioId(),
+                        dto.referencia()
+                )
                 .isPresent()) {
 
-            throw new RuntimeException("Já existe planejamento para esse mês");
+            throw new RuntimeException(
+                    "Já existe planejamento para esse mês"
+            );
         }
 
-        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Usuario usuario =
+                usuarioRepository.findById(dto.usuarioId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Usuário não encontrado"));
 
-        PlanejamentoMensal p = new PlanejamentoMensal();
-        p.setUsuario(usuario);
-        p.setReferencia(dto.referencia());
-        p.setRendaMensal(dto.rendaMensal());
-        p.setPercentualEconomia(dto.percentualEconomia());
+        PlanejamentoMensal planejamento =
+                new PlanejamentoMensal();
 
-        PlanejamentoMensal salvo = planejamentoRepository.save(p);
+        planejamento.setUsuario(usuario);
+        planejamento.setReferencia(dto.referencia());
+        planejamento.setRendaMensal(dto.rendaMensal());
+        planejamento.setPercentualEconomia(
+                dto.percentualEconomia()
+        );
+
+        PlanejamentoMensal salvo =
+                planejamentoRepository.save(planejamento);
 
         return toDTO(salvo);
     }
 
 
-    public List<PlanejamentoResumoDTO> listar(Long usuarioId) {
+    public List<PlanejamentoResumoDTO> listar(
+            Long usuarioId
+    ) {
 
-        return planejamentoRepository.findByUsuarioIdOrderByReferenciaDesc(usuarioId)
+        return planejamentoRepository
+                .findByUsuarioIdOrderByReferenciaDesc(usuarioId)
                 .stream()
                 .map(this::toDTO)
                 .toList();
     }
 
 
-    public PlanejamentoResumoDTO atualizar(Long id, PlanejamentoAtualizarDTO dto) {
 
-        PlanejamentoMensal p = planejamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+    public PlanejamentoResumoDTO buscarPorId(
+            Long id
+    ) {
 
-        if (!p.getUsuario().getId().equals(dto.usuarioId())) {
-            throw new RuntimeException("Acesso negado");
-        }
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                ));
 
-        p.setRendaMensal(dto.rendaMensal());
-        p.setPercentualEconomia(dto.percentualEconomia());
-
-        return toDTO(planejamentoRepository.save(p));
+        return toDTO(planejamento);
     }
 
 
-    public void deletar(Long id, Long usuarioId) {
 
-        PlanejamentoMensal p = planejamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+    public PlanejamentoResumoDTO atualizar(
+            Long id,
+            PlanejamentoAtualizarDTO dto
+    ) {
 
-        if (!p.getUsuario().getId().equals(usuarioId)) {
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                ));
+
+        if (!planejamento.getUsuario()
+                .getId()
+                .equals(dto.usuarioId())) {
+
             throw new RuntimeException("Acesso negado");
         }
 
-        planejamentoRepository.delete(p);
+        planejamento.setRendaMensal(dto.rendaMensal());
+        planejamento.setPercentualEconomia(
+                dto.percentualEconomia()
+        );
+
+        PlanejamentoMensal atualizado =
+                planejamentoRepository.save(planejamento);
+
+        return toDTO(atualizado);
     }
 
 
-    public PlanejamentoResumoDTO copiar(Long id, LocalDate novaReferencia) {
 
-        PlanejamentoMensal original = planejamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+    public void deletar(
+            Long id,
+            Long usuarioId
+    ) {
+
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                ));
+
+        if (!planejamento.getUsuario()
+                .getId()
+                .equals(usuarioId)) {
+
+            throw new RuntimeException("Acesso negado");
+        }
+
+        planejamentoRepository.delete(planejamento);
+    }
+
+
+
+    public PlanejamentoResumoDTO copiar(
+            Long id,
+            LocalDate novaReferencia
+    ) {
+
+        PlanejamentoMensal original =
+                planejamentoRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                ));
 
         if (planejamentoRepository
-                .findByUsuarioIdAndReferencia(original.getUsuario().getId(), novaReferencia)
+                .findByUsuarioIdAndReferencia(
+                        original.getUsuario().getId(),
+                        novaReferencia
+                )
                 .isPresent()) {
 
-            throw new RuntimeException("Já existe planejamento para esse mês");
+            throw new RuntimeException(
+                    "Já existe planejamento para esse mês"
+            );
         }
 
-        PlanejamentoMensal novo = new PlanejamentoMensal();
+        PlanejamentoMensal novo =
+                new PlanejamentoMensal();
+
         novo.setUsuario(original.getUsuario());
         novo.setReferencia(novaReferencia);
         novo.setRendaMensal(original.getRendaMensal());
-        novo.setPercentualEconomia(original.getPercentualEconomia());
+        novo.setPercentualEconomia(
+                original.getPercentualEconomia()
+        );
 
         planejamentoRepository.save(novo);
 
-        // copiar categorias
-        List<PlanejamentoCategoria> categorias =
-                categoriaRepository.findByPlanejamentoMensalId(original.getId());
 
-        for (PlanejamentoCategoria c : categorias) {
-            PlanejamentoCategoria nova = new PlanejamentoCategoria();
+
+        List<PlanejamentoCategoria> categorias =
+                categoriaRepository.findByPlanejamentoMensalId(
+                        original.getId()
+                );
+
+        for (PlanejamentoCategoria categoria : categorias) {
+
+            PlanejamentoCategoria nova =
+                    new PlanejamentoCategoria();
+
             nova.setPlanejamentoMensal(novo);
-            nova.setCategoria(c.getCategoria());
-            nova.setLimite(c.getLimite());
+            nova.setCategoria(categoria.getCategoria());
+            nova.setLimite(categoria.getLimite());
 
             categoriaRepository.save(nova);
         }
@@ -127,62 +210,98 @@ public class PlanejamentoMensalService {
         return toDTO(novo);
     }
 
-    // ==============================
-    // CONVERSOR
-    // ==============================
-    private PlanejamentoResumoDTO toDTO(PlanejamentoMensal p) {
-        return new PlanejamentoResumoDTO(
-                p.getId(),
-                p.getReferencia(),
-                p.getRendaMensal(),
-                p.getPercentualEconomia()
-        );
-    }
 
 
+    public PlanejamentoMensalResumoDTO resumoMensal(
+            Long planejamentoId
+    ) {
 
-    public PlanejamentoMensalResumoDTO resumoMensal(Long planejamentoId) {
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(planejamentoId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                ));
 
-        PlanejamentoMensal planejamento = planejamentoRepository.findById(planejamentoId)
-                .orElseThrow(() -> new RuntimeException("Planejamento não encontrado"));
+        int mes =
+                planejamento.getReferencia().getMonthValue();
 
-        int mes = planejamento.getReferencia().getMonthValue();
-        int ano = planejamento.getReferencia().getYear();
-        Long usuarioId = planejamento.getUsuario().getId();
+        int ano =
+                planejamento.getReferencia().getYear();
 
-        BigDecimal gastoTotal = transacaoRepository.totalDespesasPlanejadas(
-                usuarioId,
-                planejamentoId,
-                mes,
-                ano
-        );
+        Long usuarioId =
+                planejamento.getUsuario().getId();
 
-        if (gastoTotal == null) gastoTotal = BigDecimal.ZERO;
+        BigDecimal gastoTotal =
+                transacaoRepository.totalDespesasPlanejadas(
+                        usuarioId,
+                        planejamentoId,
+                        mes,
+                        ano
+                );
 
-        BigDecimal renda = planejamento.getRendaMensal();
+        if (gastoTotal == null) {
+            gastoTotal = BigDecimal.ZERO;
+        }
 
-        BigDecimal economizado = renda.subtract(gastoTotal);
+        BigDecimal renda =
+                planejamento.getRendaMensal();
 
-        BigDecimal percentualGasto = BigDecimal.ZERO;
-        BigDecimal percentualEconomizado = BigDecimal.ZERO;
+        BigDecimal economizado =
+                renda.subtract(gastoTotal);
+
+        BigDecimal percentualGasto =
+                BigDecimal.ZERO;
+
+        BigDecimal percentualEconomizado =
+                BigDecimal.ZERO;
 
         if (renda.compareTo(BigDecimal.ZERO) > 0) {
 
-            percentualGasto = gastoTotal
-                    .divide(renda, 2, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+            percentualGasto =
+                    gastoTotal
+                            .divide(
+                                    renda,
+                                    2,
+                                    RoundingMode.HALF_UP
+                            )
+                            .multiply(
+                                    BigDecimal.valueOf(100)
+                            );
 
-            percentualEconomizado = economizado
-                    .divide(renda, 2, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+            percentualEconomizado =
+                    economizado
+                            .divide(
+                                    renda,
+                                    2,
+                                    RoundingMode.HALF_UP
+                            )
+                            .multiply(
+                                    BigDecimal.valueOf(100)
+                            );
         }
 
         return new PlanejamentoMensalResumoDTO(
+                planejamento.getId(),
                 renda,
                 gastoTotal,
                 economizado,
                 percentualGasto,
                 percentualEconomizado
+        );
+    }
+
+
+
+    private PlanejamentoResumoDTO toDTO(
+            PlanejamentoMensal planejamento
+    ) {
+
+        return new PlanejamentoResumoDTO(
+                planejamento.getId(),
+                planejamento.getReferencia(),
+                planejamento.getRendaMensal(),
+                planejamento.getPercentualEconomia()
         );
     }
 }

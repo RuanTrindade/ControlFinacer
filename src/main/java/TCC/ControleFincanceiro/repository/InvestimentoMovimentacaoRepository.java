@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface InvestimentoMovimentacaoRepository extends JpaRepository<InvestimentoMovimentacao, Long> {
 
@@ -58,5 +59,7 @@ public interface InvestimentoMovimentacaoRepository extends JpaRepository<Invest
     AND m.tipo = 'RESGATE'
 """)
     BigDecimal totalResgates(Long investimentoId);
+
+    Optional<InvestimentoMovimentacao> findByTransacaoId(Long transacaoId);
 
 }

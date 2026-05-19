@@ -24,118 +24,185 @@ public class ObjetivoService {
     private final ObjetivoDepositoRepository depositoRepository;
 
 
-    public ObjetivoResumoDTO criar(ObjetivoCriarDTO dto) {
 
-        Usuario usuario = usuarioRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    public ObjetivoResumoDTO criar(
+            ObjetivoCriarDTO dto
+    ) {
 
-        Objetivo obj = new Objetivo();
-        obj.setNome(dto.nome());
-        obj.setValorObjetivo(dto.valorObjetivo());
-        obj.setDataFinal(dto.dataFinal());
-        obj.setCor(dto.cor());
-        obj.setIcone(dto.icone());
-        obj.setUsuario(usuario);
-        obj.setFinalizado(false);
+        Usuario usuario =
+                usuarioRepository.findById(dto.usuarioId())
+                        .orElseThrow(() ->
+                                new RuntimeException("Usuário não encontrado"));
 
-        objetivoRepository.save(obj);
+        Objetivo objetivo = new Objetivo();
 
-        return toResumo(obj);
+        objetivo.setNome(dto.nome());
+        objetivo.setValorObjetivo(dto.valorObjetivo());
+        objetivo.setDataFinal(dto.dataFinal());
+        objetivo.setCor(dto.cor());
+        objetivo.setIcone(dto.icone());
+        objetivo.setUsuario(usuario);
+        objetivo.setFinalizado(false);
+
+        Objetivo salvo =
+                objetivoRepository.save(objetivo);
+
+        return toResumo(salvo);
     }
 
 
-    public List<ObjetivoResumoDTO> listar(Long usuarioId) {
 
-        return objetivoRepository.findByUsuarioId(usuarioId)
+    public List<ObjetivoResumoDTO> listar(
+            Long usuarioId
+    ) {
+
+        return objetivoRepository
+                .findByUsuarioId(usuarioId)
                 .stream()
                 .map(this::toResumo)
                 .toList();
     }
 
 
-    public ObjetivoResumoDTO atualizar(Long objetivoId, Long usuarioId, ObjetivoAtualizarDTO dto) {
+    public ObjetivoResumoDTO buscarPorId(
+            Long objetivoId
+    ) {
 
-        Objetivo obj = objetivoRepository.findById(objetivoId)
-                .orElseThrow(() -> new RuntimeException("Objetivo não encontrado"));
+        Objetivo objetivo =
+                objetivoRepository.findById(objetivoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Objetivo não encontrado"));
 
-        if (!obj.getUsuario().getId().equals(usuarioId)) {
-            throw new RuntimeException("Acesso negado");
-        }
-
-        if (obj.getFinalizado()) {
-            throw new RuntimeException("Objetivo já finalizado");
-        }
-
-        obj.setNome(dto.nome());
-        obj.setValorObjetivo(dto.valorObjetivo());
-        obj.setDataFinal(dto.dataFinal());
-        obj.setCor(dto.cor());
-        obj.setIcone(dto.icone());
-
-        objetivoRepository.save(obj);
-
-        return toResumo(obj);
+        return toResumo(objetivo);
     }
 
 
-    public void deletar(Long objetivoId, Long usuarioId) {
 
-        Objetivo obj = objetivoRepository.findById(objetivoId)
-                .orElseThrow(() -> new RuntimeException("Objetivo não encontrado"));
+    public ObjetivoResumoDTO atualizar(
+            Long objetivoId,
+            Long usuarioId,
+            ObjetivoAtualizarDTO dto
+    ) {
 
-        if (!obj.getUsuario().getId().equals(usuarioId)) {
+        Objetivo objetivo =
+                objetivoRepository.findById(objetivoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Objetivo não encontrado"));
+
+        if (!objetivo.getUsuario()
+                .getId()
+                .equals(usuarioId)) {
+
             throw new RuntimeException("Acesso negado");
         }
 
-        BigDecimal saldo = depositoRepository.calcularTotal(objetivoId);
+        if (objetivo.getFinalizado()) {
+            throw new RuntimeException("Objetivo já finalizado");
+        }
+
+        objetivo.setNome(dto.nome());
+        objetivo.setValorObjetivo(dto.valorObjetivo());
+        objetivo.setDataFinal(dto.dataFinal());
+        objetivo.setCor(dto.cor());
+        objetivo.setIcone(dto.icone());
+
+        Objetivo atualizado =
+                objetivoRepository.save(objetivo);
+
+        return toResumo(atualizado);
+    }
+
+
+
+    public void deletar(
+            Long objetivoId,
+            Long usuarioId
+    ) {
+
+        Objetivo objetivo =
+                objetivoRepository.findById(objetivoId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Objetivo não encontrado"));
+
+        if (!objetivo.getUsuario()
+                .getId()
+                .equals(usuarioId)) {
+
+            throw new RuntimeException("Acesso negado");
+        }
+
+        BigDecimal saldo =
+                depositoRepository.calcularTotal(objetivoId);
 
         if (saldo == null) {
             saldo = BigDecimal.ZERO;
         }
 
         if (saldo.compareTo(BigDecimal.ZERO) > 0) {
-            throw new RuntimeException("Não é possível excluir objetivo com saldo");
+            throw new RuntimeException(
+                    "Não é possível excluir objetivo com saldo"
+            );
         }
 
-        objetivoRepository.delete(obj);
+        objetivoRepository.delete(objetivo);
     }
 
 
-    private ObjetivoResumoDTO toResumo(Objetivo obj) {
 
-        BigDecimal total = depositoRepository.calcularTotal(obj.getId());
+    private ObjetivoResumoDTO toResumo(
+            Objetivo objetivo
+    ) {
+
+        BigDecimal total =
+                depositoRepository.calcularTotal(
+                        objetivo.getId()
+                );
 
         if (total == null) {
             total = BigDecimal.ZERO;
         }
 
-        // FINALIZA AUTOMATICAMENTE
-        if (!obj.getFinalizado()
-                && obj.getValorObjetivo() != null
-                && total.compareTo(obj.getValorObjetivo()) >= 0) {
 
-            obj.setFinalizado(true);
-            objetivoRepository.save(obj);
+        if (!objetivo.getFinalizado()
+                && objetivo.getValorObjetivo() != null
+                && total.compareTo(
+                objetivo.getValorObjetivo()
+        ) >= 0) {
+
+            objetivo.setFinalizado(true);
+
+            objetivoRepository.save(objetivo);
         }
 
-        BigDecimal percentual = BigDecimal.ZERO;
 
-        if (obj.getValorObjetivo() != null
-                && obj.getValorObjetivo().compareTo(BigDecimal.ZERO) > 0) {
 
-            percentual = total
-                    .divide(obj.getValorObjetivo(), 2, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+        BigDecimal percentual =
+                BigDecimal.ZERO;
+
+        if (objetivo.getValorObjetivo() != null
+                && objetivo.getValorObjetivo()
+                .compareTo(BigDecimal.ZERO) > 0) {
+
+            percentual =
+                    total
+                            .divide(
+                                    objetivo.getValorObjetivo(),
+                                    2,
+                                    RoundingMode.HALF_UP
+                            )
+                            .multiply(
+                                    BigDecimal.valueOf(100)
+                            );
         }
 
         return new ObjetivoResumoDTO(
-                obj.getId(),
-                obj.getNome(),
-                obj.getValorObjetivo(),
+                objetivo.getId(),
+                objetivo.getNome(),
+                objetivo.getValorObjetivo(),
                 total,
                 percentual,
-                obj.getDataFinal(),
-                obj.getFinalizado()
+                objetivo.getDataFinal(),
+                objetivo.getFinalizado()
         );
     }
 }
