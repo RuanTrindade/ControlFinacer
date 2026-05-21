@@ -35,11 +35,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-//                .oauth2Login(oauth -> oauth
-//                        .userInfoEndpoint(user -> user
-//                                .userService(oauth2UserService)
-//                        )
-//                        .defaultSuccessUrl("/home", true)
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(user -> user
+                                .userService(oauth2UserService)
+                        )
+                        .defaultSuccessUrl("http://localhost:5173/dashboard", true))
                 ;
 
         return http.build();

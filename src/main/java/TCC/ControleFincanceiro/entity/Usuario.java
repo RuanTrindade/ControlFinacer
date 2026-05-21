@@ -39,4 +39,9 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     private Provider provider; // LOCAL ou GOOGLE
+
+
+    private String tokenRecuperacao;
+
+    private LocalDateTime expiracaoToken;
 }

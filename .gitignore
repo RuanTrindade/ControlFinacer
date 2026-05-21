@@ -36,3 +36,5 @@ build/
 uploads/
 
 application-local.properties
+
+.env
