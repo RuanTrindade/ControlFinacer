@@ -10,7 +10,9 @@ import java.util.Optional;
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
     List<Categoria> findByUsuarioId(Long usuarioId);
-    
+
+    List<Categoria> findByUsuarioIdOrPadraoSistemaTrue(Long usuarioId);
+
     List<Categoria> findByUsuarioIdAndTipo(Long usuarioId, TipoTransacao tipo);
 
     boolean existsByNomeAndUsuarioId(String nome, Long usuarioId);

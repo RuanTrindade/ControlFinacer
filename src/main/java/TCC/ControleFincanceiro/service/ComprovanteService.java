@@ -35,9 +35,6 @@ public class ComprovanteService {
     private final TransacaoRepository transacaoRepository;
     private final CategoriaRepository categoriaRepository;
 
-    // ==============================
-    // UPLOAD
-    // ==============================
     public ComprovanteResponseDTO upload(MultipartFile file, Long usuarioId) {
 
         try {
@@ -71,24 +68,21 @@ public class ComprovanteService {
         }
     }
 
-    // ==============================
-    // ANALISAR (OCR + IA)
-    // ==============================
     public String analisar(Long comprovanteId) {
 
         Comprovante comp = comprovanteRepository.findById(comprovanteId)
                 .orElseThrow(() -> new RuntimeException("Comprovante não encontrado"));
 
-        // 🔥 1. OCR
+
         String texto = ocrService.extrairTexto(comp.getUrlArquivo());
 
-        // 🔥 2. IA
+
         String resposta = chamarIA(texto);
 
-        // 🔥 3. extrair JSON LIMPO
+
         String json = extrairJson(resposta);
 
-        // 🔥 4. salvar correto
+
         comp.setDadosExtraidos(json);
         comp.setProcessado(true);
         comprovanteRepository.save(comp);
@@ -137,9 +131,7 @@ public class ComprovanteService {
         return json;
     }
 
-    // ==============================
-    // IA (TEXTO → JSON)
-    // ==============================
+
     private String chamarIA(String texto) {
 
         RestTemplate restTemplate = new RestTemplate();
@@ -189,9 +181,6 @@ REGRAS:
         return (String) response.get("response");
     }
 
-    // ==============================
-    // EXTRAIR JSON DA IA
-    // ==============================
     private String extrairJson(String resposta) {
 
         int inicio = resposta.indexOf("{");
@@ -214,4 +203,70 @@ REGRAS:
             throw new RuntimeException("Erro ao converter JSON da IA");
         }
     }
+
+    public Comprovante salvarComprovante(
+            MultipartFile file,
+            Usuario usuario
+    ) {
+
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        try {
+
+            String nomeOriginal =
+                    file.getOriginalFilename();
+
+            String nomeArquivo =
+                    System.currentTimeMillis()
+                            + "_"
+                            + nomeOriginal;
+
+            Path caminho =
+                    Paths.get(
+                            "uploads",
+                            nomeArquivo
+                    );
+
+            Files.createDirectories(
+                    caminho.getParent()
+            );
+
+            Files.write(
+                    caminho,
+                    file.getBytes()
+            );
+
+            Comprovante comprovante =
+                    new Comprovante();
+
+            comprovante.setNomeArquivo(
+                    nomeArquivo
+            );
+
+            comprovante.setUrlArquivo(
+                    caminho
+                            .toString()
+                            .replace("\\", "/")
+            );
+
+            comprovante.setProcessado(false);
+
+            comprovante.setUsuario(usuario);
+
+            return comprovanteRepository.save(
+                    comprovante
+            );
+
+        } catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Erro ao salvar comprovante",
+                    e
+            );
+        }
+    }
 }
+
+

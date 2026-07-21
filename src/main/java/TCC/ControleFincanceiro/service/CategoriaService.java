@@ -62,7 +62,7 @@ public class CategoriaService {
     ) {
 
         return categoriaRepository
-                .findByUsuarioId(usuarioId)
+                .findByUsuarioIdOrPadraoSistemaTrue(usuarioId)
                 .stream()
                 .map(this::toResumoDTO)
                 .toList();

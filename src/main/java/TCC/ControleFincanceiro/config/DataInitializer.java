@@ -22,6 +22,7 @@ public class DataInitializer implements CommandLineRunner {
     private final InvestimentoMovimentacaoRepository investimentoMovimentacaoRepo;
     private final PlanejamentoMensalRepository planejamentoMensalRepo;
     private final PlanejamentoCategoriaRepository planejamentoCategoriaRepo;
+    private final ComprovanteRepository comprovanteRepo;
 
     public DataInitializer(
             UsuarioRepository usuarioRepo,
@@ -32,7 +33,8 @@ public class DataInitializer implements CommandLineRunner {
             InvestimentoRepository investimentoRepo,
             InvestimentoMovimentacaoRepository investimentoMovimentacaoRepo,
             PlanejamentoMensalRepository planejamentoMensalRepo,
-            PlanejamentoCategoriaRepository planejamentoCategoriaRepo
+            PlanejamentoCategoriaRepository planejamentoCategoriaRepo,
+            ComprovanteRepository comprovanteRepo
     ) {
 
         this.usuarioRepo = usuarioRepo;
@@ -44,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
         this.investimentoMovimentacaoRepo = investimentoMovimentacaoRepo;
         this.planejamentoMensalRepo = planejamentoMensalRepo;
         this.planejamentoCategoriaRepo = planejamentoCategoriaRepo;
+        this.comprovanteRepo = comprovanteRepo;
     }
 
     @Override
@@ -103,7 +106,7 @@ public class DataInitializer implements CommandLineRunner {
         categoriaRepo.save(investimentos);
 
         Categoria resgateInvestimento = new Categoria();
-        resgateInvestimento.setNome("Resgate de Investimento");
+        resgateInvestimento.setNome("Investimento ");
         resgateInvestimento.setIcone("bi-cash");
         resgateInvestimento.setCor("#00C897");
         resgateInvestimento.setTipo(TipoTransacao.RECEITA);
@@ -119,7 +122,7 @@ public class DataInitializer implements CommandLineRunner {
         categoriaRepo.save(objetivos);
 
         Categoria resgateObjetivo = new Categoria();
-        resgateObjetivo.setNome("Resgate de Objetivo");
+        resgateObjetivo.setNome("Objetivo ");
         resgateObjetivo.setTipo(TipoTransacao.RECEITA);
         resgateObjetivo.setPadraoSistema(true);
 
@@ -139,11 +142,18 @@ public class DataInitializer implements CommandLineRunner {
         // TRANSAÇÕES
         // =====================================
 
+
+        Comprovante comprovantePix = new Comprovante();
+        comprovantePix.setNomeArquivo("comprovante_picpay_PIX.pdf");
+        comprovantePix.setUrlArquivo("uploads/1777396053857_comprovante_picpay_PIX_21042026181534.pdf");
+
+        comprovanteRepo.save(comprovantePix);
+
         Transacao salarioTx = new Transacao();
         salarioTx.setDescricao("Salário Mensal");
         salarioTx.setValor(BigDecimal.valueOf(30000));
         salarioTx.setMetodoPagamento(MetodoPagamento.PIX);
-        salarioTx.setStatus(StatusPagamento.PAGO);
+        salarioTx.setStatus(StatusPagamento.PENDENTE);
         salarioTx.setData(LocalDate.of(2026, 2, 1));
         salarioTx.setCategoria(salario);
         salarioTx.setUsuario(usuario);
@@ -158,6 +168,7 @@ public class DataInitializer implements CommandLineRunner {
         mercadoTx.setData(LocalDate.of(2026, 2, 5));
         mercadoTx.setCategoria(alimentacao);
         mercadoTx.setUsuario(usuario);
+        mercadoTx.setComprovante(comprovantePix);
 
         transacaoRepo.save(mercadoTx);
 
@@ -165,7 +176,7 @@ public class DataInitializer implements CommandLineRunner {
         academiaTx.setDescricao("Academia");
         academiaTx.setValor(BigDecimal.valueOf(120));
         academiaTx.setMetodoPagamento(MetodoPagamento.DEBITO);
-        academiaTx.setStatus(StatusPagamento.PAGO);
+        academiaTx.setStatus(StatusPagamento.PENDENTE);
         academiaTx.setData(LocalDate.of(2026, 2, 10));
         academiaTx.setCategoria(academia);
         academiaTx.setUsuario(usuario);
@@ -191,7 +202,7 @@ public class DataInitializer implements CommandLineRunner {
         // =====================================
 
         Transacao depTx1 = new Transacao();
-        depTx1.setDescricao("Depósito no objetivo: Viagem Europa");
+        depTx1.setDescricao("Objetivo: Viagem Europa");
         depTx1.setValor(BigDecimal.valueOf(1000));
         depTx1.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         depTx1.setStatus(StatusPagamento.PAGO);
@@ -215,7 +226,7 @@ public class DataInitializer implements CommandLineRunner {
         // =====================================
 
         Transacao depTx2 = new Transacao();
-        depTx2.setDescricao("Depósito no objetivo: Viagem Europa");
+        depTx2.setDescricao("Objetivo: Viagem Europa");
         depTx2.setValor(BigDecimal.valueOf(500));
         depTx2.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         depTx2.setStatus(StatusPagamento.PAGO);
@@ -251,7 +262,7 @@ public class DataInitializer implements CommandLineRunner {
         // =====================================
 
         Transacao aporteTx = new Transacao();
-        aporteTx.setDescricao("Aporte em investimento: CDB Nubank");
+        aporteTx.setDescricao("Investimento: CDB Nubank");
         aporteTx.setValor(BigDecimal.valueOf(1000));
         aporteTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         aporteTx.setStatus(StatusPagamento.PAGO);
@@ -275,7 +286,7 @@ public class DataInitializer implements CommandLineRunner {
         // =====================================
 
         Transacao rendimentoTx = new Transacao();
-        rendimentoTx.setDescricao("Rendimento investimento: CDB Nubank");
+        rendimentoTx.setDescricao("Investimento: CDB Nubank");
         rendimentoTx.setValor(BigDecimal.valueOf(10));
         rendimentoTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
         rendimentoTx.setStatus(StatusPagamento.PAGO);

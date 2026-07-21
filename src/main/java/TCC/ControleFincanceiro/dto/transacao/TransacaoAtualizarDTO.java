@@ -6,12 +6,13 @@ import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record TransacaoAtualizarDTO (
-    Long categoriaId,
-    String descricao,
-    BigDecimal valor,
-    MetodoPagamento metodo,
-    StatusPagamento status,
-    LocalDate data
-
-){}
+public record TransacaoAtualizarDTO(
+        Long categoriaId,
+        String descricao,
+        BigDecimal valor,
+        MetodoPagamento metodo,
+        StatusPagamento status,
+        LocalDate data,
+        Boolean removerComprovante
+) {
+}
