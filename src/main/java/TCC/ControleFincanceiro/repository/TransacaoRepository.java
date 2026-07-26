@@ -3,6 +3,8 @@ package TCC.ControleFincanceiro.repository;
 import TCC.ControleFincanceiro.entity.Transacao;
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,10 +16,14 @@ import java.util.List;
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     List<Transacao> findByUsuarioId(Long usuarioId);
-    List<Transacao> findByUsuarioIdAndDataBetweenOrderByDataDesc(
+
+    boolean existsByCategoriaId(Long categoriaId);
+
+    Page<Transacao> findByUsuarioIdAndDataBetweenOrderByDataDescIdDesc(
             Long usuarioId,
             LocalDate dataInicio,
-            LocalDate dataFim
+            LocalDate dataFim,
+            Pageable pageable
     );
 
     @Query("""
@@ -37,7 +43,7 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
        )
        ORDER BY t.data DESC, t.id DESC
        """)
-    List<Transacao> filtrar(
+    Page<Transacao> filtrar(
             @Param("usuarioId")
             Long usuarioId,
 
@@ -63,7 +69,9 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             BigDecimal valorMax,
 
             @Param("descricao")
-            String descricao
+            String descricao,
+
+            Pageable pageable
     );
 
     @Query("""

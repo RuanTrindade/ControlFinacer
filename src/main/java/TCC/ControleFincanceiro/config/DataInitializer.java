@@ -71,7 +71,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria alimentacao = new Categoria();
         alimentacao.setNome("Alimentação");
-        alimentacao.setIcone("bi-basket");
+        alimentacao.setIcone("BiRestaurant");
         alimentacao.setCor("#FF6B6B");
         alimentacao.setTipo(TipoTransacao.DESPESA);
         alimentacao.setPadraoSistema(true);
@@ -80,7 +80,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria transporte = new Categoria();
         transporte.setNome("Transporte");
-        transporte.setIcone("bi-car-front");
+        transporte.setIcone("BiCar");
         transporte.setCor("#4D96FF");
         transporte.setTipo(TipoTransacao.DESPESA);
         transporte.setPadraoSistema(true);
@@ -89,7 +89,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria salario = new Categoria();
         salario.setNome("Salário");
-        salario.setIcone("bi-wallet");
+        salario.setIcone("BiWallet");
         salario.setCor("#00C897");
         salario.setTipo(TipoTransacao.RECEITA);
         salario.setPadraoSistema(true);
@@ -98,7 +98,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria investimentos = new Categoria();
         investimentos.setNome("Investimentos");
-        investimentos.setIcone("bi-graph-up");
+        investimentos.setIcone("BiDollarCircle");
         investimentos.setCor("#8338EC");
         investimentos.setTipo(TipoTransacao.DESPESA);
         investimentos.setPadraoSistema(true);
@@ -107,7 +107,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria resgateInvestimento = new Categoria();
         resgateInvestimento.setNome("Investimento ");
-        resgateInvestimento.setIcone("bi-cash");
+        resgateInvestimento.setIcone("BiTransfer");
         resgateInvestimento.setCor("#00C897");
         resgateInvestimento.setTipo(TipoTransacao.RECEITA);
         resgateInvestimento.setPadraoSistema(true);
@@ -116,6 +116,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria objetivos = new Categoria();
         objetivos.setNome("Objetivos");
+        objetivos.setIcone("BiDonateHeart");
         objetivos.setTipo(TipoTransacao.DESPESA);
         objetivos.setPadraoSistema(true);
 
@@ -123,6 +124,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria resgateObjetivo = new Categoria();
         resgateObjetivo.setNome("Objetivo ");
+        resgateObjetivo.setIcone("BiDonateHeart");
         resgateObjetivo.setTipo(TipoTransacao.RECEITA);
         resgateObjetivo.setPadraoSistema(true);
 
@@ -130,7 +132,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Categoria academia = new Categoria();
         academia.setNome("Academia");
-        academia.setIcone("bi-heart-pulse");
+        academia.setIcone("BiDumbbell");
         academia.setCor("#F72585");
         academia.setTipo(TipoTransacao.DESPESA);
         academia.setPadraoSistema(false);

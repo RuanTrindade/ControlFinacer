@@ -17,6 +17,8 @@ import TCC.ControleFincanceiro.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -123,10 +125,11 @@ public class TransacaoService {
 
 
 
-    public List<TransacaoResumoDTO> listarPorUsuario(
+    public Page<TransacaoResumoDTO> listarPorUsuario(
             Long usuarioId,
             Integer mes,
-            Integer ano
+            Integer ano,
+            Pageable pageable
     ) {
 
         LocalDate dataInicio =
@@ -141,18 +144,16 @@ public class TransacaoService {
                         dataInicio.lengthOfMonth()
                 );
 
-        List<Transacao> transacoes =
+        Page<Transacao> transacoes =
                 transacaoRepository
-                        .findByUsuarioIdAndDataBetweenOrderByDataDesc(
+                        .findByUsuarioIdAndDataBetweenOrderByDataDescIdDesc(
                                 usuarioId,
                                 dataInicio,
-                                dataFim
+                                dataFim,
+                                pageable
                         );
 
-        return transacoes
-                .stream()
-                .map(this::toResumoDTO)
-                .toList();
+        return transacoes.map(this::toResumoDTO);
     }
 
 
@@ -365,7 +366,7 @@ public class TransacaoService {
     }
 
 
-    public List<TransacaoResumoDTO> filtrarTransacoes(
+    public Page<TransacaoResumoDTO> filtrarTransacoes(
             Long usuarioId,
             Long categoriaId,
             StatusPagamento status,
@@ -374,7 +375,8 @@ public class TransacaoService {
             LocalDate dataFim,
             BigDecimal valorMin,
             BigDecimal valorMax,
-            String descricao
+            String descricao,
+            Pageable pageable
     ) {
 
         if (usuarioId == null) {
@@ -427,7 +429,7 @@ public class TransacaoService {
                         ? null
                         : descricao.trim();
 
-        List<Transacao> transacoes =
+        Page<Transacao> transacoes =
                 transacaoRepository.filtrar(
                         usuarioId,
                         categoriaId,
@@ -437,13 +439,11 @@ public class TransacaoService {
                         dataFim,
                         valorMin,
                         valorMax,
-                        descricaoTratada
+                        descricaoTratada,
+                        pageable
                 );
 
-        return transacoes
-                .stream()
-                .map(this::toResumoDTO)
-                .toList();
+        return transacoes.map(this::toResumoDTO);
     }
 
     public BigDecimal obterSaldoUsuario(

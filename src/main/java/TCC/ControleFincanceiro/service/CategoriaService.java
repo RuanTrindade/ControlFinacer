@@ -6,6 +6,7 @@ import TCC.ControleFincanceiro.dto.categoria.CategoriaResumoDTO;
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.Usuario;
 import TCC.ControleFincanceiro.repository.CategoriaRepository;
+import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final TransacaoRepository transacaoRepository;
 
 
 
@@ -166,6 +168,12 @@ public class CategoriaService {
             throw new RuntimeException("Acesso negado");
         }
 
+        if (transacaoRepository.existsByCategoriaId(categoriaId)) {
+            throw new RuntimeException(
+                    "Essa categoria não pode ser excluída porque está sendo usada em uma ou mais transações"
+            );
+        }
+
         categoriaRepository.delete(categoria);
     }
 
@@ -180,7 +188,8 @@ public class CategoriaService {
                 categoria.getNome(),
                 categoria.getCor(),
                 categoria.getIcone(),
-                categoria.getTipo()
+                categoria.getTipo(),
+                categoria.getPadraoSistema()
         );
     }
 }

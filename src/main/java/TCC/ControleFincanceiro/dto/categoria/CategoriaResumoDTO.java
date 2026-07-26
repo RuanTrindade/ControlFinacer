@@ -7,5 +7,6 @@ public record CategoriaResumoDTO(
         String nome,
         String cor,
         String icone,
-        TipoTransacao tipo
+        TipoTransacao tipo,
+        Boolean padraoSistema
 ) {}

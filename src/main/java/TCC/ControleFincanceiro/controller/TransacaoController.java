@@ -9,6 +9,8 @@ import TCC.ControleFincanceiro.service.TransacaoService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -94,24 +96,25 @@ public class TransacaoController {
 
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<TransacaoResumoDTO>> listarPorUsuario(
+    public ResponseEntity<Page<TransacaoResumoDTO>> listarPorUsuario(
 
             @PathVariable Long usuarioId,
 
             @RequestParam Integer mes,
 
-            @RequestParam Integer ano
+            @RequestParam Integer ano,
+
+            Pageable pageable
 
     ) {
 
         return ResponseEntity.ok(
-
                 transacaoService.listarPorUsuario(
                         usuarioId,
                         mes,
-                        ano
+                        ano,
+                        pageable
                 )
-
         );
     }
 
@@ -152,7 +155,7 @@ public class TransacaoController {
 
 
     @GetMapping("/filtrar")
-    public ResponseEntity<List<TransacaoResumoDTO>>
+    public ResponseEntity<Page<TransacaoResumoDTO>>
     filtrarTransacoes(
 
             @RequestParam
@@ -186,10 +189,12 @@ public class TransacaoController {
             BigDecimal valorMax,
 
             @RequestParam(required = false)
-            String descricao
+            String descricao,
+
+            Pageable pageable
     ) {
 
-        List<TransacaoResumoDTO> transacoes =
+        Page<TransacaoResumoDTO> transacoes =
                 transacaoService.filtrarTransacoes(
                         usuarioId,
                         categoriaId,
@@ -199,11 +204,10 @@ public class TransacaoController {
                         dataFim,
                         valorMin,
                         valorMax,
-                        descricao
+                        descricao,
+                        pageable
                 );
 
-        return ResponseEntity.ok(
-                transacoes
-        );
+        return ResponseEntity.ok(transacoes);
     }
 }
