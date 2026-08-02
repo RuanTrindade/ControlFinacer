@@ -1,16 +1,15 @@
 package TCC.ControleFincanceiro.service;
 
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoCriarDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoMensalResumoDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoResumoDTO;
+import TCC.ControleFincanceiro.dto.planejamento.*;
 import TCC.ControleFincanceiro.entity.PlanejamentoCategoria;
 import TCC.ControleFincanceiro.entity.PlanejamentoMensal;
 import TCC.ControleFincanceiro.entity.Usuario;
+import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
 import TCC.ControleFincanceiro.repository.PlanejamentoCategoriaRepository;
 import TCC.ControleFincanceiro.repository.PlanejamentoMensalRepository;
 import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,15 +27,20 @@ public class PlanejamentoMensalService {
     private final PlanejamentoCategoriaRepository categoriaRepository;
     private final TransacaoRepository transacaoRepository;
 
+    private final PlanejamentoCategoriaService planejamentoCategoriaService;
+
 
     public PlanejamentoResumoDTO criar(
             PlanejamentoCriarDTO dto
     ) {
 
+        LocalDate referencia =
+                dto.referencia().withDayOfMonth(1);
+
         if (planejamentoRepository
                 .findByUsuarioIdAndReferencia(
                         dto.usuarioId(),
-                        dto.referencia()
+                        referencia
                 )
                 .isPresent()) {
 
@@ -45,23 +49,96 @@ public class PlanejamentoMensalService {
             );
         }
 
+
+        if (
+                dto.rendaMensal() == null ||
+                        dto.rendaMensal()
+                                .compareTo(BigDecimal.ZERO) <= 0
+        ) {
+            throw new RuntimeException(
+                    "A renda mensal deve ser maior que zero"
+            );
+        }
+
+        if (
+                dto.percentualEconomia() == null ||
+                        dto.percentualEconomia()
+                                .compareTo(BigDecimal.ZERO) < 0 ||
+                        dto.percentualEconomia()
+                                .compareTo(BigDecimal.valueOf(100)) > 0
+        ) {
+            throw new RuntimeException(
+                    "O percentual de economia deve estar entre 0 e 100"
+            );
+        }
+
+
         Usuario usuario =
                 usuarioRepository.findById(dto.usuarioId())
                         .orElseThrow(() ->
-                                new RuntimeException("Usuário não encontrado"));
+                                new RuntimeException(
+                                        "Usuário não encontrado"
+                                ));
+
+
+        /*
+         * Calcula quanto do planejamento fica
+         * disponível inicialmente.
+         *
+         * Ex:
+         * renda = 2200
+         * economia = 20%
+         *
+         * metaEconomia = 440
+         * valorPlanejado = 1760
+         */
+        BigDecimal metaEconomia =
+                dto.rendaMensal()
+                        .multiply(
+                                dto.percentualEconomia()
+                        )
+                        .divide(
+                                BigDecimal.valueOf(100),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+
+
+        BigDecimal valorPlanejado =
+                dto.rendaMensal()
+                        .subtract(
+                                metaEconomia
+                        );
+
 
         PlanejamentoMensal planejamento =
                 new PlanejamentoMensal();
 
-        planejamento.setUsuario(usuario);
-        planejamento.setReferencia(dto.referencia());
-        planejamento.setRendaMensal(dto.rendaMensal());
+        planejamento.setUsuario(
+                usuario
+        );
+
+        planejamento.setReferencia(
+                referencia
+        );
+
+        planejamento.setRendaMensal(
+                dto.rendaMensal()
+        );
+
         planejamento.setPercentualEconomia(
                 dto.percentualEconomia()
         );
 
+        planejamento.setValorPlanejado(
+                valorPlanejado
+        );
+
+
         PlanejamentoMensal salvo =
-                planejamentoRepository.save(planejamento);
+                planejamentoRepository.save(
+                        planejamento
+                );
 
         return toDTO(salvo);
     }
@@ -115,6 +192,28 @@ public class PlanejamentoMensalService {
             throw new RuntimeException("Acesso negado");
         }
 
+        if (
+                dto.rendaMensal() == null ||
+                        dto.rendaMensal()
+                                .compareTo(BigDecimal.ZERO) <= 0
+        ) {
+            throw new RuntimeException(
+                    "A renda mensal deve ser maior que zero"
+            );
+        }
+
+        if (
+                dto.percentualEconomia() == null ||
+                        dto.percentualEconomia()
+                                .compareTo(BigDecimal.ZERO) < 0 ||
+                        dto.percentualEconomia()
+                                .compareTo(BigDecimal.valueOf(100)) > 0
+        ) {
+            throw new RuntimeException(
+                    "O percentual de economia deve estar entre 0 e 100"
+            );
+        }
+
         planejamento.setRendaMensal(dto.rendaMensal());
         planejamento.setPercentualEconomia(
                 dto.percentualEconomia()
@@ -124,6 +223,118 @@ public class PlanejamentoMensalService {
                 planejamentoRepository.save(planejamento);
 
         return toDTO(atualizado);
+    }
+
+
+
+    @Transactional
+    public PlanejamentoResumoDTO atualizarValorPlanejado(
+            Long id,
+            PlanejamentoValorAtualizarDTO dto
+    ) {
+
+        PlanejamentoMensal planejamento =
+                planejamentoRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Planejamento não encontrado"
+                                )
+                        );
+
+
+        /*
+         * Segurança:
+         * o planejamento precisa pertencer
+         * ao usuário informado.
+         */
+        if (
+                !planejamento
+                        .getUsuario()
+                        .getId()
+                        .equals(
+                                dto.usuarioId()
+                        )
+        ) {
+
+            throw new RuntimeException(
+                    "Acesso negado"
+            );
+        }
+
+
+        /*
+         * O novo valor precisa ser válido.
+         */
+        if (
+                dto.valorPlanejado() == null ||
+                        dto.valorPlanejado()
+                                .compareTo(
+                                        BigDecimal.ZERO
+                                ) <= 0
+        ) {
+
+            throw new RuntimeException(
+                    "O valor do planejamento deve ser maior que zero"
+            );
+        }
+
+
+        /*
+         * Soma SOMENTE as categorias
+         * realmente planejadas.
+         *
+         * Categorias restantes NÃO entra aqui.
+         */
+        BigDecimal somaCategorias =
+                categoriaRepository.somaLimites(
+                        id
+                );
+
+
+        if (somaCategorias == null) {
+
+            somaCategorias =
+                    BigDecimal.ZERO;
+
+        }
+
+
+        /*
+         * O usuário pode diminuir
+         * valorPlanejado.
+         *
+         * Porém nunca abaixo da soma
+         * das categorias planejadas.
+         */
+        if (
+                dto.valorPlanejado()
+                        .compareTo(
+                                somaCategorias
+                        ) < 0
+        ) {
+
+            throw new RuntimeException(
+                    "O valor do planejamento não pode ser menor que R$ "
+                            + somaCategorias
+                            + ", que é o total já distribuído nas categorias."
+            );
+        }
+
+
+        planejamento.setValorPlanejado(
+                dto.valorPlanejado()
+        );
+
+
+        PlanejamentoMensal atualizado =
+                planejamentoRepository.save(
+                        planejamento
+                );
+
+
+        return toDTO(
+                atualizado
+        );
     }
 
 
@@ -152,10 +363,14 @@ public class PlanejamentoMensalService {
 
 
 
+    @Transactional
     public PlanejamentoResumoDTO copiar(
             Long id,
             LocalDate novaReferencia
     ) {
+
+        novaReferencia =
+                novaReferencia.withDayOfMonth(1);
 
         PlanejamentoMensal original =
                 planejamentoRepository.findById(id)
@@ -184,6 +399,10 @@ public class PlanejamentoMensalService {
         novo.setRendaMensal(original.getRendaMensal());
         novo.setPercentualEconomia(
                 original.getPercentualEconomia()
+        );
+
+        novo.setValorPlanejado(
+                original.getValorPlanejado()
         );
 
         planejamentoRepository.save(novo);
@@ -232,13 +451,71 @@ public class PlanejamentoMensalService {
         Long usuarioId =
                 planejamento.getUsuario().getId();
 
+        BigDecimal receitasMes =
+                transacaoRepository
+                        .totalReceitasNoMes(
+                                usuarioId,
+                                mes,
+                                ano
+                        );
+
+        if (receitasMes == null) {
+            receitasMes = BigDecimal.ZERO;
+        }
+
+        BigDecimal despesasPlanejadasPagas =
+                transacaoRepository
+                        .totalDespesasPlanejadasPorStatus(
+                                usuarioId,
+                                planejamentoId,
+                                StatusPagamento.PAGO,
+                                mes,
+                                ano
+                        );
+
+        BigDecimal despesasPlanejadasPendentes =
+                transacaoRepository
+                        .totalDespesasPlanejadasPorStatus(
+                                usuarioId,
+                                planejamentoId,
+                                StatusPagamento.PENDENTE,
+                                mes,
+                                ano
+                        );
+
+
+        BigDecimal despesasNaoPlanejadasPagas =
+                transacaoRepository
+                        .totalDespesasNaoPlanejadasPorStatus(
+                                usuarioId,
+                                planejamentoId,
+                                StatusPagamento.PAGO,
+                                mes,
+                                ano
+                        );
+
+        BigDecimal despesasNaoPlanejadasPendentes =
+                transacaoRepository
+                        .totalDespesasNaoPlanejadasPorStatus(
+                                usuarioId,
+                                planejamentoId,
+                                StatusPagamento.PENDENTE,
+                                mes,
+                                ano
+                        );
+
+
         BigDecimal gastoTotal =
-                transacaoRepository.totalDespesasPlanejadas(
-                        usuarioId,
-                        planejamentoId,
-                        mes,
-                        ano
-                );
+                despesasPlanejadasPagas
+                        .add(
+                                despesasPlanejadasPendentes
+                        )
+                        .add(
+                                despesasNaoPlanejadasPagas
+                        )
+                        .add(
+                                despesasNaoPlanejadasPendentes
+                        );
 
         if (gastoTotal == null) {
             gastoTotal = BigDecimal.ZERO;
@@ -247,14 +524,27 @@ public class PlanejamentoMensalService {
         BigDecimal renda =
                 planejamento.getRendaMensal();
 
-        BigDecimal economizado =
-                renda.subtract(gastoTotal);
+        BigDecimal metaEconomia =
+                renda
+                        .multiply(
+                                planejamento
+                                        .getPercentualEconomia()
+                        )
+                        .divide(
+                                BigDecimal.valueOf(100),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+
+        BigDecimal valorDisponivel =
+                planejamento.getValorPlanejado();
+
+        BigDecimal saldoRestante =
+                valorDisponivel.subtract(gastoTotal);
 
         BigDecimal percentualGasto =
                 BigDecimal.ZERO;
 
-        BigDecimal percentualEconomizado =
-                BigDecimal.ZERO;
 
         if (renda.compareTo(BigDecimal.ZERO) > 0) {
 
@@ -269,28 +559,38 @@ public class PlanejamentoMensalService {
                                     BigDecimal.valueOf(100)
                             );
 
-            percentualEconomizado =
-                    economizado
-                            .divide(
-                                    renda,
-                                    2,
-                                    RoundingMode.HALF_UP
-                            )
-                            .multiply(
-                                    BigDecimal.valueOf(100)
-                            );
+
         }
 
         return new PlanejamentoMensalResumoDTO(
+
                 planejamento.getId(),
+                planejamento.getReferencia(),
                 renda,
+                receitasMes,
+                planejamento.getPercentualEconomia(),
+                metaEconomia,
+                valorDisponivel,
                 gastoTotal,
-                economizado,
-                percentualGasto,
-                percentualEconomizado
+                saldoRestante,
+                percentualGasto
         );
     }
 
+
+    public PlanejamentoDashboardDTO dashboard(Long planejamentoId) {
+
+        PlanejamentoMensalResumoDTO resumoMensal =
+                resumoMensal(planejamentoId);
+
+        List<PlanejamentoCategoriaResumoDTO> categorias =
+                planejamentoCategoriaService.resumo(planejamentoId);
+
+        return new PlanejamentoDashboardDTO(
+                resumoMensal,
+                categorias
+        );
+    }
 
 
     private PlanejamentoResumoDTO toDTO(

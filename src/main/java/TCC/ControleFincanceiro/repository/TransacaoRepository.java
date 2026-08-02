@@ -92,15 +92,26 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
     FROM Transacao t
     WHERE t.usuario.id = :usuarioId
     AND t.categoria.id = :categoriaId
+    AND t.categoria.tipo = 'DESPESA'
+    AND t.status = :status
     AND MONTH(t.data) = :mes
     AND YEAR(t.data) = :ano
 """)
-    BigDecimal totalPorCategoriaNoMes(Long usuarioId, Long categoriaId, int mes, int ano);
+    BigDecimal totalPorCategoriaNoMesEStatus(
+            @Param("usuarioId") Long usuarioId,
+            @Param("categoriaId") Long categoriaId,
+            @Param("status") StatusPagamento status,
+            @Param("mes") int mes,
+            @Param("ano") int ano
+    );
+
 
     @Query("""
     SELECT COALESCE(SUM(t.valor), 0)
     FROM Transacao t
     WHERE t.usuario.id = :usuarioId
+    AND t.categoria.tipo = 'DESPESA'
+    AND t.status = :status
     AND t.categoria.id IN (
         SELECT pc.categoria.id
         FROM PlanejamentoCategoria pc
@@ -109,13 +120,35 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
     AND MONTH(t.data) = :mes
     AND YEAR(t.data) = :ano
 """)
-    BigDecimal totalDespesasPlanejadas(
-            Long usuarioId,
-            Long planejamentoId,
-            int mes,
-            int ano
+    BigDecimal totalDespesasPlanejadasPorStatus(
+            @Param("usuarioId") Long usuarioId,
+            @Param("planejamentoId") Long planejamentoId,
+            @Param("status") StatusPagamento status,
+            @Param("mes") int mes,
+            @Param("ano") int ano
     );
 
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.tipo = 'DESPESA'
+    AND t.status = :status
+    AND t.categoria.id NOT IN (
+        SELECT pc.categoria.id
+        FROM PlanejamentoCategoria pc
+        WHERE pc.planejamentoMensal.id = :planejamentoId
+    )
+    AND MONTH(t.data) = :mes
+    AND YEAR(t.data) = :ano
+""")
+    BigDecimal totalDespesasNaoPlanejadasPorStatus(
+            @Param("usuarioId") Long usuarioId,
+            @Param("planejamentoId") Long planejamentoId,
+            @Param("status") StatusPagamento status,
+            @Param("mes") int mes,
+            @Param("ano") int ano
+    );
 
 
     @Query("""
@@ -133,6 +166,20 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
 
 
+
+    @Query("""
+    SELECT COALESCE(SUM(t.valor), 0)
+    FROM Transacao t
+    WHERE t.usuario.id = :usuarioId
+    AND t.categoria.tipo = 'RECEITA'
+    AND MONTH(t.data) = :mes
+    AND YEAR(t.data) = :ano
+""")
+    BigDecimal totalReceitasNoMes(
+            @Param("usuarioId") Long usuarioId,
+            @Param("mes") int mes,
+            @Param("ano") int ano
+    );
 
     @Query("""
     SELECT COALESCE(SUM(t.valor), 0)

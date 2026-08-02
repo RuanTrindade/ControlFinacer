@@ -311,20 +311,7 @@ public class DataInitializer implements CommandLineRunner {
         // PLANEJAMENTO
         // =====================================
 
-        PlanejamentoMensal planejamento = new PlanejamentoMensal();
-        planejamento.setReferencia(LocalDate.of(2026, 2, 1));
-        planejamento.setRendaMensal(BigDecimal.valueOf(3000));
-        planejamento.setPercentualEconomia(BigDecimal.valueOf(20));
-        planejamento.setUsuario(usuario);
 
-        planejamentoMensalRepo.save(planejamento);
-
-        PlanejamentoCategoria pc = new PlanejamentoCategoria();
-        pc.setLimite(BigDecimal.valueOf(600));
-        pc.setPlanejamentoMensal(planejamento);
-        pc.setCategoria(alimentacao);
-
-        planejamentoCategoriaRepo.save(pc);
 
         System.out.println(">>> Dados iniciais populados com sucesso!");
     }

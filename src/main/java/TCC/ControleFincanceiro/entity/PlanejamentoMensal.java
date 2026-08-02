@@ -23,17 +23,27 @@ public class PlanejamentoMensal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDate referencia;
 
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal rendaMensal;
 
+    @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal percentualEconomia;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal valorPlanejado;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @OneToMany(mappedBy = "planejamentoMensal", cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "planejamentoMensal",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<PlanejamentoCategoria> categorias;
 
 }

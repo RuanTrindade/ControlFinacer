@@ -18,4 +18,9 @@ public interface PlanejamentoCategoriaRepository extends JpaRepository<Planejame
         WHERE p.planejamentoMensal.id = :planejamentoId
     """)
     BigDecimal somaLimites(Long planejamentoId);
+
+    boolean existsByPlanejamentoMensalIdAndCategoriaId(
+            Long planejamentoId,
+            Long categoriaId
+    );
 }

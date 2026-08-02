@@ -1,9 +1,6 @@
 package TCC.ControleFincanceiro.controller;
 
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoCriarDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoMensalResumoDTO;
-import TCC.ControleFincanceiro.dto.planejamento.PlanejamentoResumoDTO;
+import TCC.ControleFincanceiro.dto.planejamento.*;
 import TCC.ControleFincanceiro.entity.PlanejamentoMensal;
 import TCC.ControleFincanceiro.service.PlanejamentoMensalService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +42,22 @@ public class PlanejamentoMensalController {
     }
 
 
+    @PutMapping("/{id}/valor-planejado")
+    public ResponseEntity<PlanejamentoResumoDTO> atualizarValorPlanejado(
+            @PathVariable Long id,
+            @RequestBody PlanejamentoValorAtualizarDTO dto
+    ) {
+
+        return ResponseEntity.ok(
+                planejamentoService
+                        .atualizarValorPlanejado(
+                                id,
+                                dto
+                        )
+        );
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(
             @PathVariable Long id,
@@ -71,5 +84,15 @@ public class PlanejamentoMensalController {
     @GetMapping("/{id}/resumo")
     public ResponseEntity<PlanejamentoMensalResumoDTO> resumo(@PathVariable Long id) {
         return ResponseEntity.ok(planejamentoService.resumoMensal(id));
+    }
+
+    @GetMapping("/{id}/dashboard")
+    public ResponseEntity<PlanejamentoDashboardDTO> dashboard(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                planejamentoService.dashboard(id)
+        );
     }
 }

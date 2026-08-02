@@ -47,20 +47,42 @@ public class AnaliseIAService {
         contexto.append("CATEGORIAS:\n");
 
         for (PlanejamentoCategoriaResumoDTO c : categorias) {
-            BigDecimal diff = c.gasto().subtract(c.planejado());
+
+            BigDecimal totalComprometido = c.pago()
+                    .add(c.pagoUltrapassado())
+                    .add(c.pendente())
+                    .add(c.pendenteUltrapassado());
+
+            BigDecimal diferenca =
+                    totalComprometido.subtract(c.limite());
 
             contexto.append("- ")
                     .append(c.categoria())
-                    .append(": limite ")
-                    .append(c.planejado())
-                    .append(", gasto ")
-                    .append(c.gasto())
-                    .append(", diferenca ")
-                    .append(diff)
-                    .append(diff.compareTo(BigDecimal.ZERO) < 0
-                            ? " (economia de R$" + diff.abs() + ")"
-                            : " (excesso de R$" + diff + ")")
-                    .append("\n");
+                    .append(": limite R$ ")
+                    .append(c.limite())
+                    .append(", total comprometido R$ ")
+                    .append(totalComprometido)
+                    .append(", diferença R$ ")
+                    .append(diferenca);
+
+            if (diferenca.compareTo(BigDecimal.ZERO) < 0) {
+
+                contexto.append(" (disponível: R$ ")
+                        .append(diferenca.abs())
+                        .append(")");
+
+            } else if (diferenca.compareTo(BigDecimal.ZERO) > 0) {
+
+                contexto.append(" (excesso: R$ ")
+                        .append(diferenca)
+                        .append(")");
+
+            } else {
+
+                contexto.append(" (limite atingido)");
+            }
+
+            contexto.append("\n");
         }
 
         contexto.append("\nOBJETIVOS:\n");
