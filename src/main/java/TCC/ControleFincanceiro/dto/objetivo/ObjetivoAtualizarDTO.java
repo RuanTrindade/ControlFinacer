@@ -8,5 +8,6 @@ public record ObjetivoAtualizarDTO(
         BigDecimal valorObjetivo,
         LocalDate dataFinal,
         String cor,
-        String icone
+        String icone,
+        String imagem
 ) {}

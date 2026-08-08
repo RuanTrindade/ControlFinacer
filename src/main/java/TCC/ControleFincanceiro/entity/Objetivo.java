@@ -22,6 +22,7 @@ public class Objetivo {
     private LocalDate dataFinal;
     private String cor;
     private String icone;
+    private String imagem;
     private Boolean finalizado = false;
 
     @ManyToOne

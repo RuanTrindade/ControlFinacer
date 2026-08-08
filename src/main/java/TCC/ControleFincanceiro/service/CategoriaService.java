@@ -49,7 +49,9 @@ public class CategoriaService {
         categoria.setIcone(dto.icone());
         categoria.setTipo(dto.tipo());
         categoria.setUsuario(usuario);
+
         categoria.setPadraoSistema(false);
+        categoria.setInternaSistema(false);
 
         Categoria salva =
                 categoriaRepository.save(categoria);
@@ -64,7 +66,9 @@ public class CategoriaService {
     ) {
 
         return categoriaRepository
-                .findByUsuarioIdOrPadraoSistemaTrue(usuarioId)
+                .listarCategoriasDisponiveis(
+                        usuarioId
+                )
                 .stream()
                 .map(this::toResumoDTO)
                 .toList();

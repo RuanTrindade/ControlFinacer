@@ -25,6 +25,8 @@ public class Categoria {
 
     private Boolean padraoSistema = false;
 
+    private Boolean internaSistema = false;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;

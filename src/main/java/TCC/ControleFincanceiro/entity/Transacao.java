@@ -37,6 +37,8 @@ public class Transacao {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
+    private Boolean bloqueadaSistema = false;
+
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;

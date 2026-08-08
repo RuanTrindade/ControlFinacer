@@ -4,6 +4,8 @@ import TCC.ControleFincanceiro.dto.objetivo.ObjetivoMovimentacaoDTO;
 import TCC.ControleFincanceiro.dto.objetivo.ObjetivoMovimentacaoRequestDTO;
 import TCC.ControleFincanceiro.service.ObjetivoDepositoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,12 +36,19 @@ public class ObjetivoDepositoController {
 
 
     @GetMapping("/{id}/movimentacoes")
-    public ResponseEntity<List<ObjetivoMovimentacaoDTO>> listar(
-            @PathVariable Long id
+    public ResponseEntity<Page<ObjetivoMovimentacaoDTO>> listar(
+
+            @PathVariable Long id,
+
+            Pageable pageable
+
     ) {
 
         return ResponseEntity.ok(
-                depositoService.listar(id)
+                depositoService.listar(
+                        id,
+                        pageable
+                )
         );
     }
 

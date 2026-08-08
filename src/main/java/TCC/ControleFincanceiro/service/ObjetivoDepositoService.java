@@ -12,6 +12,8 @@ import TCC.ControleFincanceiro.repository.ObjetivoDepositoRepository;
 import TCC.ControleFincanceiro.repository.ObjetivoRepository;
 import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -66,9 +68,9 @@ public class ObjetivoDepositoService {
 
             BigDecimal saldoUsuario =
                     transacaoRepository.calcularSaldoUsuario(
-                            objetivo.getUsuario().getId()
+                            objetivo.getUsuario().getId(),
+                            StatusPagamento.PAGO
                     );
-
             if (saldoUsuario == null) {
                 saldoUsuario = BigDecimal.ZERO;
             }
@@ -117,7 +119,26 @@ public class ObjetivoDepositoService {
             );
         }
 
-        depositoRepository.save(dep);
+        depositoRepository.save(
+                dep
+        );
+
+
+        /*
+         * Somente um depósito pode levar
+         * o objetivo à conclusão.
+         */
+        if (
+                tipo.equalsIgnoreCase(
+                        "DEPOSITO"
+                )
+        ) {
+
+            verificarConclusao(
+                    objetivo
+            );
+        }
+
 
         return new ObjetivoMovimentacaoDTO(
                 dep.getId(),
@@ -157,21 +178,31 @@ public class ObjetivoDepositoService {
 
 
 
-    public List<ObjetivoMovimentacaoDTO> listar(Long objetivoId) {
+    public Page<ObjetivoMovimentacaoDTO> listar(
+            Long objetivoId,
+            Pageable pageable
+    ) {
 
         return depositoRepository
-                .findByObjetivo_IdOrderByDataAsc(objetivoId)
-                .stream()
-                .map(d -> new ObjetivoMovimentacaoDTO(
-                        d.getId(),
-                        d.getObjetivo().getNome(),
-                        d.getValor().compareTo(BigDecimal.ZERO) > 0
-                                ? "DEPOSITO"
-                                : "RETIRADA",
-                        d.getValor().abs(),
-                        d.getData()
-                ))
-                .toList();
+                .findByObjetivoIdOrderByDataDesc(
+                        objetivoId,
+                        pageable
+                )
+                .map(
+                        d ->
+                                new ObjetivoMovimentacaoDTO(
+                                        d.getId(),
+                                        d.getObjetivo().getNome(),
+                                        d.getValor()
+                                                .compareTo(
+                                                        BigDecimal.ZERO
+                                                ) > 0
+                                                ? "DEPOSITO"
+                                                : "RETIRADA",
+                                        d.getValor().abs(),
+                                        d.getData()
+                                )
+                );
     }
 
 
@@ -184,6 +215,17 @@ public class ObjetivoDepositoService {
         ObjetivoDeposito dep = depositoRepository.findById(depositoId)
                 .orElseThrow(() ->
                         new RuntimeException("Movimentação não encontrada"));
+
+        if (
+                Boolean.TRUE.equals(
+                        dep.getObjetivo().getFinalizado()
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Não é possível editar movimentações de um objetivo concluído"
+            );
+        }
 
         if (novoValor == null ||
                 novoValor.compareTo(BigDecimal.ZERO) <= 0) {
@@ -203,7 +245,6 @@ public class ObjetivoDepositoService {
 
         depositoRepository.save(dep);
 
-        // 🔥 atualiza transação vinculada
         Transacao t = dep.getTransacao();
 
         if (t != null) {
@@ -213,6 +254,13 @@ public class ObjetivoDepositoService {
             transacaoRepository.save(t);
         }
 
+        /*
+         * Uma edição também pode fazer
+         * o objetivo atingir a meta.
+         */
+        verificarConclusao(
+                dep.getObjetivo()
+        );
         return new ObjetivoMovimentacaoDTO(
                 dep.getId(),
                 dep.getObjetivo().getNome(),
@@ -230,6 +278,19 @@ public class ObjetivoDepositoService {
                 .orElseThrow(() ->
                         new RuntimeException("Movimentação não encontrada"));
 
+        if (
+                Boolean.TRUE.equals(
+                        dep.getObjetivo().getFinalizado()
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Não é possível excluir movimentações de um objetivo concluído"
+            );
+        }
+
+
+
         Transacao transacao = dep.getTransacao();
 
         dep.setTransacao(null);
@@ -239,5 +300,134 @@ public class ObjetivoDepositoService {
         if (transacao != null) {
             transacaoRepository.delete(transacao);
         }
+    }
+
+    private void verificarConclusao(
+            Objetivo objetivo
+    ) {
+
+        /*
+         * Se já terminou, não fazemos nada.
+         *
+         * Isso garante que a transação de
+         * conclusão nunca será criada duas vezes.
+         */
+        if (
+                Boolean.TRUE.equals(
+                        objetivo.getFinalizado()
+                )
+        ) {
+            return;
+        }
+
+
+        BigDecimal total =
+                depositoRepository.calcularTotal(
+                        objetivo.getId()
+                );
+
+
+        if (total == null) {
+            total = BigDecimal.ZERO;
+        }
+
+
+        /*
+         * Ainda não atingiu a meta.
+         */
+        if (
+                total.compareTo(
+                        objetivo.getValorObjetivo()
+                ) < 0
+        ) {
+            return;
+        }
+
+
+        /*
+         * Busca a categoria técnica de receita.
+         */
+        Categoria categoria =
+                categoriaRepository
+                        .findByNomeAndPadraoSistemaTrue(
+                                "Resgate de Objetivo"
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Categoria de conclusão de objetivo não encontrada"
+                                )
+                        );
+
+
+        /*
+         * Cria a receita que devolve o dinheiro
+         * acumulado para a conta do usuário.
+         */
+        Transacao transacao =
+                new Transacao();
+
+
+        transacao.setDescricao(
+                "Objetivo concluído: "
+                        + objetivo.getNome()
+        );
+
+
+        transacao.setValor(
+                total
+        );
+
+
+        transacao.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+
+        transacao.setStatus(
+                StatusPagamento.PAGO
+        );
+
+
+        transacao.setData(
+                LocalDate.now()
+        );
+
+
+        transacao.setCategoria(
+                categoria
+        );
+
+
+        transacao.setUsuario(
+                objetivo.getUsuario()
+        );
+
+
+        /*
+         * Essa transação não poderá ser
+         * alterada manualmente.
+         */
+        transacao.setBloqueadaSistema(
+                true
+        );
+
+
+        transacaoRepository.save(
+                transacao
+        );
+
+
+        /*
+         * Só depois da transação ser criada
+         * marcamos o objetivo como concluído.
+         */
+        objetivo.setFinalizado(
+                true
+        );
+
+
+        objetivoRepository.save(
+                objetivo
+        );
     }
 }

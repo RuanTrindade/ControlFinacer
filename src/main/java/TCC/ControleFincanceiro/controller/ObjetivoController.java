@@ -5,6 +5,8 @@ import TCC.ControleFincanceiro.dto.objetivo.ObjetivoCriarDTO;
 import TCC.ControleFincanceiro.dto.objetivo.ObjetivoResumoDTO;
 import TCC.ControleFincanceiro.service.ObjetivoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,23 @@ public class ObjetivoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<ObjetivoResumoDTO>> listar(@PathVariable Long usuarioId) {
-        return ResponseEntity.ok(objetivoService.listar(usuarioId));
+    public ResponseEntity<Page<ObjetivoResumoDTO>> listar(
+
+            @PathVariable Long usuarioId,
+
+            @RequestParam Boolean finalizado,
+
+            Pageable pageable
+
+    ) {
+
+        return ResponseEntity.ok(
+                objetivoService.listar(
+                        usuarioId,
+                        finalizado,
+                        pageable
+                )
+        );
     }
 
     @PutMapping("/{id}")
@@ -47,5 +64,15 @@ public class ObjetivoController {
     ) {
         objetivoService.deletar(id, usuarioId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ObjetivoResumoDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                objetivoService.buscarPorId(id)
+        );
     }
 }

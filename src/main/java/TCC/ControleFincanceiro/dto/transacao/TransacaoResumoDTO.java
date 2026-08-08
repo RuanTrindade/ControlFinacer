@@ -2,8 +2,6 @@ package TCC.ControleFincanceiro.dto.transacao;
 
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +19,12 @@ public record TransacaoResumoDTO(
         MetodoPagamento metodo,
         StatusPagamento status,
         LocalDate data,
-        String urlComprovante
+        String urlComprovante,
+        Boolean bloqueadaSistema,
+
+        Long objetivoId,
+        String objetivoNome,
+        Boolean objetivoFinalizado
+
 ) {
 }

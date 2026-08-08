@@ -115,20 +115,42 @@ public class DataInitializer implements CommandLineRunner {
         categoriaRepo.save(resgateInvestimento);
 
         Categoria objetivos = new Categoria();
+
         objetivos.setNome("Objetivos");
         objetivos.setIcone("BiDonateHeart");
+        objetivos.setCor("#8b5cf6");
         objetivos.setTipo(TipoTransacao.DESPESA);
         objetivos.setPadraoSistema(true);
+        objetivos.setInternaSistema(true);
 
         categoriaRepo.save(objetivos);
 
-        Categoria resgateObjetivo = new Categoria();
-        resgateObjetivo.setNome("Objetivo ");
-        resgateObjetivo.setIcone("BiDonateHeart");
-        resgateObjetivo.setTipo(TipoTransacao.RECEITA);
-        resgateObjetivo.setPadraoSistema(true);
 
-        categoriaRepo.save(resgateObjetivo);
+        Categoria resgateObjetivo =
+                new Categoria();
+
+        resgateObjetivo.setNome(
+                "Resgate de Objetivo"
+        );
+
+        resgateObjetivo.setIcone(
+                "BiTransfer"
+        );
+
+        resgateObjetivo.setCor(
+                "#22c55e"
+        );
+
+        resgateObjetivo.setTipo(
+                TipoTransacao.RECEITA
+        );
+
+        resgateObjetivo.setPadraoSistema(true);
+        resgateObjetivo.setInternaSistema(true);
+
+        categoriaRepo.save(
+                resgateObjetivo
+        );
 
         Categoria academia = new Categoria();
         academia.setNome("Academia");
@@ -155,7 +177,7 @@ public class DataInitializer implements CommandLineRunner {
         salarioTx.setDescricao("Salário Mensal");
         salarioTx.setValor(BigDecimal.valueOf(30000));
         salarioTx.setMetodoPagamento(MetodoPagamento.PIX);
-        salarioTx.setStatus(StatusPagamento.PENDENTE);
+        salarioTx.setStatus(StatusPagamento.PAGO);
         salarioTx.setData(LocalDate.of(2026, 2, 1));
         salarioTx.setCategoria(salario);
         salarioTx.setUsuario(usuario);
@@ -256,6 +278,10 @@ public class DataInitializer implements CommandLineRunner {
         investimento.setTaxaAtual(BigDecimal.valueOf(1));
         investimento.setTipo(TipoAtivo.RENDA_FIXA);
         investimento.setUsuario(usuario);
+
+        investimentos.setInternaSistema(true);
+
+        resgateInvestimento.setInternaSistema(true);
 
         investimentoRepo.save(investimento);
 

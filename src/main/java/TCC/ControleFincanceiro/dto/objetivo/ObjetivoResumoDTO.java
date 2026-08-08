@@ -10,5 +10,8 @@ public record ObjetivoResumoDTO(
         BigDecimal valorAtual,
         BigDecimal percentual,
         LocalDate dataFinal,
-        Boolean finalizado
+        Boolean finalizado,
+        String cor,
+        String icone,
+        String imagem
 ) {}

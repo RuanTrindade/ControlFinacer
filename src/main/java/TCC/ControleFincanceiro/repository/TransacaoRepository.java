@@ -76,16 +76,19 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
     @Query("""
     SELECT COALESCE(SUM(
-        CASE 
+        CASE
             WHEN t.categoria.tipo = 'RECEITA' THEN t.valor
             WHEN t.categoria.tipo = 'DESPESA' THEN -t.valor
         END
     ), 0)
     FROM Transacao t
     WHERE t.usuario.id = :usuarioId
+    AND t.status = :status
 """)
-    BigDecimal calcularSaldoUsuario(Long usuarioId);
-
+    BigDecimal calcularSaldoUsuario(
+            @Param("usuarioId") Long usuarioId,
+            @Param("status") StatusPagamento status
+    );
 
     @Query("""
     SELECT COALESCE(SUM(t.valor), 0)

@@ -56,7 +56,8 @@ public class InvestimentoMovimentacaoService {
 
             BigDecimal saldoUsuario =
                     transacaoRepository.calcularSaldoUsuario(
-                            investimento.getUsuario().getId()
+                            investimento.getUsuario().getId(),
+                            StatusPagamento.PAGO
                     );
 
             if (saldoUsuario == null) {

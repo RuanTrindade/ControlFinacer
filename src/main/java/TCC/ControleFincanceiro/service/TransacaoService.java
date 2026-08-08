@@ -4,14 +4,12 @@ import TCC.ControleFincanceiro.dto.transacao.TransacaoAtualizarDTO;
 import TCC.ControleFincanceiro.dto.transacao.TransacaoCriarDTO;
 import TCC.ControleFincanceiro.dto.transacao.TransacaoResumoDTO;
 
-import TCC.ControleFincanceiro.entity.Categoria;
-import TCC.ControleFincanceiro.entity.Comprovante;
-import TCC.ControleFincanceiro.entity.Transacao;
-import TCC.ControleFincanceiro.entity.Usuario;
+import TCC.ControleFincanceiro.entity.*;
 
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
 import TCC.ControleFincanceiro.repository.CategoriaRepository;
+import TCC.ControleFincanceiro.repository.ObjetivoDepositoRepository;
 import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
 
@@ -25,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +36,8 @@ public class TransacaoService {
     private final CategoriaRepository categoriaRepository;
 
     private final ComprovanteService comprovanteService;
+
+    private final ObjetivoDepositoRepository depositoRepository;
 
 
 
@@ -197,6 +198,17 @@ public class TransacaoService {
                         );
 
         if (
+                Boolean.TRUE.equals(
+                        transacao.getBloqueadaSistema()
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Esta transação foi gerada automaticamente pelo sistema e não pode ser editada"
+            );
+        }
+
+        if (
                 !transacao
                         .getUsuario()
                         .getId()
@@ -349,6 +361,17 @@ public class TransacaoService {
                         );
 
         if (
+                Boolean.TRUE.equals(
+                        transacao.getBloqueadaSistema()
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Esta transação foi gerada automaticamente pelo sistema e não pode ser excluída"
+            );
+        }
+
+        if (
                 !transacao
                         .getUsuario()
                         .getId()
@@ -453,14 +476,14 @@ public class TransacaoService {
         BigDecimal saldo =
                 transacaoRepository
                         .calcularSaldoUsuario(
-                                usuarioId
+                                usuarioId,
+                                StatusPagamento.PAGO
                         );
 
         return saldo != null
                 ? saldo
                 : BigDecimal.ZERO;
     }
-
 
 
     private void validarDadosCriacao(
@@ -559,26 +582,64 @@ public class TransacaoService {
 
         String urlComprovante =
                 transacao.getComprovante() != null
-                        ? transacao
-                          .getComprovante()
+                        ? transacao.getComprovante()
                           .getUrlArquivo()
                         : null;
+
+
+        Optional<ObjetivoDeposito> depositoObjetivo =
+                depositoRepository.findByTransacaoId(
+                        transacao.getId()
+                );
+
+
+        Long objetivoId = null;
+        String objetivoNome = null;
+        Boolean objetivoFinalizado = null;
+
+
+        if (depositoObjetivo.isPresent()) {
+
+            ObjetivoDeposito deposito =
+                    depositoObjetivo.get();
+
+            objetivoId =
+                    deposito.getObjetivo()
+                            .getId();
+
+            objetivoNome =
+                    deposito.getObjetivo()
+                            .getNome();
+
+            objetivoFinalizado =
+                    deposito.getObjetivo()
+                            .getFinalizado();
+        }
+
 
         return new TransacaoResumoDTO(
                 transacao.getId(),
                 transacao.getDescricao(),
-                transacao.getCategoria().getTipo().name(),
-                transacao.getCategoria().getId(),
-                transacao.getCategoria().getNome(),
-                transacao.getCategoria().getCor(),
-                transacao.getCategoria().getIcone(),
+                transacao.getCategoria()
+                        .getTipo()
+                        .name(),
+                transacao.getCategoria()
+                        .getId(),
+                transacao.getCategoria()
+                        .getNome(),
+                transacao.getCategoria()
+                        .getCor(),
+                transacao.getCategoria()
+                        .getIcone(),
                 transacao.getValor(),
                 transacao.getMetodoPagamento(),
                 transacao.getStatus(),
                 transacao.getData(),
-                transacao.getComprovante() != null
-                        ? transacao.getComprovante().getUrlArquivo()
-                        : null
+                urlComprovante,
+                transacao.getBloqueadaSistema(),
+                objetivoId,
+                objetivoNome,
+                objetivoFinalizado
         );
     }
 }

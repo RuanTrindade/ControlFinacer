@@ -3,6 +3,8 @@ package TCC.ControleFincanceiro.repository;
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +20,21 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
     boolean existsByNomeAndUsuarioId(String nome, Long usuarioId);
 
     Optional<Categoria> findByNomeAndPadraoSistemaTrue(String nome);
+    @Query("""
+    SELECT c
+    FROM Categoria c
+    WHERE
+        (
+            c.usuario.id = :usuarioId
+            OR c.padraoSistema = true
+        )
+        AND (
+            c.internaSistema = false
+            OR c.internaSistema IS NULL
+        )
+    ORDER BY c.nome
+""")
+    List<Categoria> listarCategoriasDisponiveis(
+            @Param("usuarioId") Long usuarioId
+    );
 }
