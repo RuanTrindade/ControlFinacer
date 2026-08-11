@@ -8,10 +8,7 @@ import TCC.ControleFincanceiro.entity.*;
 
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
-import TCC.ControleFincanceiro.repository.CategoriaRepository;
-import TCC.ControleFincanceiro.repository.ObjetivoDepositoRepository;
-import TCC.ControleFincanceiro.repository.TransacaoRepository;
-import TCC.ControleFincanceiro.repository.UsuarioRepository;
+import TCC.ControleFincanceiro.repository.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,16 +27,12 @@ import java.util.Optional;
 public class TransacaoService {
 
     private final TransacaoRepository transacaoRepository;
-
     private final UsuarioRepository usuarioRepository;
-
     private final CategoriaRepository categoriaRepository;
-
     private final ComprovanteService comprovanteService;
-
     private final ObjetivoDepositoRepository depositoRepository;
 
-
+    private final InvestimentoMovimentacaoRepository investimentoMovimentacaoRepository;
 
 
     public TransacaoResumoDTO criarTransacao(
@@ -617,7 +610,43 @@ public class TransacaoService {
         }
 
 
+        Optional<InvestimentoMovimentacao> movimentacaoInvestimento =
+                investimentoMovimentacaoRepository
+                        .findByTransacaoId(
+                                transacao.getId()
+                        );
+
+
+        Long investimentoId = null;
+        String investimentoNome = null;
+        Boolean investimentoEncerrado = null;
+
+
+        if (movimentacaoInvestimento.isPresent()) {
+
+            InvestimentoMovimentacao movimentacao =
+                    movimentacaoInvestimento.get();
+
+
+            Investimento investimento =
+                    movimentacao.getInvestimento();
+
+
+            investimentoId =
+                    investimento.getId();
+
+
+            investimentoNome =
+                    investimento.getNome();
+
+
+            investimentoEncerrado =
+                    investimento.getEncerrado();
+        }
+
+
         return new TransacaoResumoDTO(
+
                 transacao.getId(),
                 transacao.getDescricao(),
                 transacao.getCategoria()
@@ -639,7 +668,11 @@ public class TransacaoService {
                 transacao.getBloqueadaSistema(),
                 objetivoId,
                 objetivoNome,
-                objetivoFinalizado
+                objetivoFinalizado,
+                investimentoId,
+                investimentoNome,
+                investimentoEncerrado
+
         );
     }
 }

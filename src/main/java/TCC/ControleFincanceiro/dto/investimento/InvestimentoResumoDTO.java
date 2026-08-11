@@ -2,11 +2,16 @@ package TCC.ControleFincanceiro.dto.investimento;
 
 import TCC.ControleFincanceiro.entity.enumerated.TipoAtivo;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record InvestimentoResumoDTO(
+
         Long id,
         String nome,
         TipoAtivo tipo,
-        BigDecimal taxaAtual
-) {}
+        LocalDate dataCriacao,
+        Boolean encerrado,
+        Boolean pendenteAtualizacao
+
+) {
+}

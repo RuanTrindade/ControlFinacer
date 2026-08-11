@@ -1,11 +1,10 @@
 package TCC.ControleFincanceiro.controller;
 
-import TCC.ControleFincanceiro.dto.investimento.InvestimentoAtualizarDTO;
-import TCC.ControleFincanceiro.dto.investimento.InvestimentoCriarDTO;
-import TCC.ControleFincanceiro.dto.investimento.InvestimentoEstatisticaDTO;
-import TCC.ControleFincanceiro.dto.investimento.InvestimentoResumoDTO;
+import TCC.ControleFincanceiro.dto.investimento.*;
 import TCC.ControleFincanceiro.service.InvestimentoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +26,6 @@ public class InvestimentoController {
                 .body(investimentoService.criarInvestimento(dto));
     }
 
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<InvestimentoResumoDTO>> listarInvestimentos(
-            @PathVariable Long usuarioId
-    ) {
-        return ResponseEntity.ok(investimentoService.listarInvestimentos(usuarioId));
-    }
 
     @PutMapping("/{id}")
     public ResponseEntity<InvestimentoResumoDTO> atualizarInvestimento(
@@ -57,5 +50,82 @@ public class InvestimentoController {
     @GetMapping("/{id}/estatisticas")
     public ResponseEntity<InvestimentoEstatisticaDTO> estatisticas(@PathVariable Long id) {
         return ResponseEntity.ok(investimentoService.obterEstatisticas(id));
+    }
+
+
+    @GetMapping("/{id}/resumo-mensal")
+    public ResponseEntity<InvestimentoResumoMensalDTO>
+    obterResumoMensal(
+            @PathVariable Long id,
+            @RequestParam Integer mes,
+            @RequestParam Integer ano
+
+    ) {
+
+        return ResponseEntity.ok(
+                investimentoService
+                        .obterResumoMensal(
+                                id,
+                                mes,
+                                ano
+                        )
+
+        );
+    }
+
+
+    @GetMapping("/usuario/{usuarioId}/resumo")
+    public ResponseEntity<CarteiraInvestimentoResumoDTO>
+    obterResumoCarteira(
+            @PathVariable Long usuarioId,
+            @RequestParam Integer mes,
+            @RequestParam Integer ano
+
+    ) {
+
+        return ResponseEntity.ok(
+
+                investimentoService
+                        .obterResumoCarteira(
+                                usuarioId,
+                                mes,
+                                ano
+                        )
+
+        );
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<Page<InvestimentoCardDTO>> listarInvestimentos(
+            @PathVariable Long usuarioId,
+            @RequestParam(defaultValue = "false")
+            Boolean encerrado,
+            @RequestParam Integer mes,
+            @RequestParam Integer ano,
+            Pageable pageable
+
+    ) {
+
+        return ResponseEntity.ok(
+                investimentoService
+                        .listarInvestimentos(
+                                usuarioId,
+                                encerrado,
+                                mes,
+                                ano,
+                                pageable
+                        )
+        );
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<InvestimentoResumoDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
+
+        return ResponseEntity.ok(
+                investimentoService.buscarPorId(id)
+        );
     }
 }

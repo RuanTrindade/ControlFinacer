@@ -3,7 +3,7 @@ package TCC.ControleFincanceiro.dto.investimento;
 import TCC.ControleFincanceiro.entity.enumerated.TipoInvestimento;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record InvestimentoMovimentacaoDTO(
 
@@ -11,7 +11,7 @@ public record InvestimentoMovimentacaoDTO(
         String nomeInvestimento,
         TipoInvestimento tipo,
         BigDecimal valor,
-        LocalDate data
+        LocalDateTime data
 
 ) {
 }

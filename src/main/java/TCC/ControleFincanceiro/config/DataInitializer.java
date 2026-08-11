@@ -24,6 +24,8 @@ public class DataInitializer implements CommandLineRunner {
     private final PlanejamentoCategoriaRepository planejamentoCategoriaRepo;
     private final ComprovanteRepository comprovanteRepo;
 
+
+
     public DataInitializer(
             UsuarioRepository usuarioRepo,
             CategoriaRepository categoriaRepo,
@@ -270,68 +272,942 @@ public class DataInitializer implements CommandLineRunner {
         objetivoDepositoRepo.save(dep2);
 
         // =====================================
-        // INVESTIMENTO
-        // =====================================
+// INVESTIMENTO
+// =====================================
 
-        Investimento investimento = new Investimento();
-        investimento.setNome("CDB Nubank");
-        investimento.setTaxaAtual(BigDecimal.valueOf(1));
-        investimento.setTipo(TipoAtivo.RENDA_FIXA);
-        investimento.setUsuario(usuario);
-
+        /*
+         * Garante que as categorias internas
+         * de investimento fiquem identificadas
+         * corretamente no sistema.
+         */
         investimentos.setInternaSistema(true);
+        categoriaRepo.save(investimentos);
+
+        resgateInvestimento.setNome(
+                "Resgate de Investimento"
+        );
 
         resgateInvestimento.setInternaSistema(true);
+        categoriaRepo.save(resgateInvestimento);
 
-        investimentoRepo.save(investimento);
+
+        /*
+         * Cria o investimento.
+         */
+        Investimento investimento =
+                new Investimento();
+
+        investimento.setNome(
+                "CDB Nubank"
+        );
+
+        investimento.setTipo(
+                TipoAtivo.RENDA_FIXA
+        );
+
+        investimento.setUsuario(
+                usuario
+        );
+
+        investimento.setDataCriacao(
+                LocalDate.of(
+                        2026,
+                        1,
+                        1
+                )
+        );
+
+        investimento.setEncerrado(
+                false
+        );
+
+        investimentoRepo.save(
+                investimento
+        );
+
+
+// =====================================
+// APORTE NO INVESTIMENTO
+// =====================================
+
+        /*
+         * O aporte gera uma transação de DESPESA
+         * na conta geral do usuário.
+         */
+        Transacao aporteTx =
+                new Transacao();
+
+        aporteTx.setDescricao(
+                "Aporte em investimento: CDB Nubank"
+        );
+
+        aporteTx.setValor(
+                BigDecimal.valueOf(1000)
+        );
+
+        aporteTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        aporteTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        aporteTx.setData(
+                LocalDate.of(
+                        2026,
+                        1,
+                        1
+                )
+        );
+
+        aporteTx.setCategoria(
+                investimentos
+        );
+
+        aporteTx.setUsuario(
+                usuario
+        );
+
+        /*
+         * Como essa transação pertence
+         * ao módulo de investimentos,
+         * ela não poderá ser editada/excluída
+         * diretamente pela tela de Transações.
+         */
+        aporteTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                aporteTx
+        );
+
+
+        /*
+         * Registra a movimentação interna
+         * relacionada ao aporte.
+         */
+        InvestimentoMovimentacao movAporte =
+                new InvestimentoMovimentacao();
+
+        movAporte.setValor(
+                BigDecimal.valueOf(1000)
+        );
+
+        movAporte.setData(
+                LocalDateTime.of(
+                        2026,
+                        1,
+                        1,
+                        10,
+                        0
+                )
+        );
+
+        movAporte.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movAporte.setInvestimento(
+                investimento
+        );
+
+        movAporte.setTransacao(
+                aporteTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movAporte
+        );
+
+
+
+
+
+// =====================================
+// NOVO APORTE APÓS ATUALIZAÇÃO
+// =====================================
+
+        /*
+         * Este segundo aporte serve também
+         * para testar nossa regra:
+         *
+         * última atualização = R$ 1.010
+         * + novo aporte = R$ 500
+         *
+         * saldo atual esperado = R$ 1.510
+         */
+        Transacao segundoAporteTx =
+                new Transacao();
+
+        segundoAporteTx.setDescricao(
+                "Aporte em investimento: CDB Nubank"
+        );
+
+        segundoAporteTx.setValor(
+                BigDecimal.valueOf(500)
+        );
+
+        segundoAporteTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        segundoAporteTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        segundoAporteTx.setData(
+                LocalDate.of(
+                        2026,
+                        2,
+                        10
+                )
+        );
+
+        segundoAporteTx.setCategoria(
+                investimentos
+        );
+
+        segundoAporteTx.setUsuario(
+                usuario
+        );
+
+        segundoAporteTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                segundoAporteTx
+        );
+
+
+        InvestimentoMovimentacao movSegundoAporte =
+                new InvestimentoMovimentacao();
+
+        movSegundoAporte.setValor(
+                BigDecimal.valueOf(500)
+        );
+
+        movSegundoAporte.setData(
+                LocalDateTime.of(
+                        2026,
+                        2,
+                        10,
+                        10,
+                        0
+                )
+        );
+
+        movSegundoAporte.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movSegundoAporte.setInvestimento(
+                investimento
+        );
+
+        movSegundoAporte.setTransacao(
+                segundoAporteTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movSegundoAporte
+        );
+
+
+// =====================================
+// RESGATE PARCIAL
+// =====================================
+
+        /*
+         * Saldo esperado antes do resgate:
+         *
+         * R$ 1.010
+         * + R$ 500
+         * = R$ 1.510
+         *
+         * Resgate:
+         * R$ 300
+         *
+         * Saldo esperado depois:
+         * R$ 1.210
+         */
+        Transacao resgateTx =
+                new Transacao();
+
+        resgateTx.setDescricao(
+                "Resgate de investimento: CDB Nubank"
+        );
+
+        resgateTx.setValor(
+                BigDecimal.valueOf(300)
+        );
+
+        resgateTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        resgateTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        resgateTx.setData(
+                LocalDate.of(
+                        2026,
+                        2,
+                        15
+                )
+        );
+
+        resgateTx.setCategoria(
+                resgateInvestimento
+        );
+
+        resgateTx.setUsuario(
+                usuario
+        );
+
+        resgateTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                resgateTx
+        );
+
+
+        InvestimentoMovimentacao movResgate =
+                new InvestimentoMovimentacao();
+
+        movResgate.setValor(
+                BigDecimal.valueOf(300)
+        );
+
+        movResgate.setData(
+                LocalDateTime.of(
+                        2026,
+                        2,
+                        15,
+                        10,
+                        0
+                )
+        );
+
+        movResgate.setTipo(
+                TipoInvestimento.RESGATE
+        );
+
+        movResgate.setInvestimento(
+                investimento
+        );
+
+        movResgate.setTransacao(
+                resgateTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movResgate
+        );
+
+
+
 
         // =====================================
-        // APORTE
-        // =====================================
+// DADOS DE TESTE - JULHO E AGOSTO
+// =====================================
 
-        Transacao aporteTx = new Transacao();
-        aporteTx.setDescricao("Investimento: CDB Nubank");
-        aporteTx.setValor(BigDecimal.valueOf(1000));
-        aporteTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
-        aporteTx.setStatus(StatusPagamento.PAGO);
-        aporteTx.setData(LocalDate.of(2026, 1, 1));
-        aporteTx.setCategoria(investimentos);
-        aporteTx.setUsuario(usuario);
 
-        transacaoRepo.save(aporteTx);
+        /*
+         * ===================================================
+         * CDB NUBANK
+         * ===================================================
+         *
+         * Vamos preparar uma sequência que permita testar
+         * corretamente julho e agosto.
+         *
+         * Saldo que tínhamos após fevereiro:
+         *
+         * atualização fevereiro = 1.010
+         * + aporte fevereiro     = 500
+         * - resgate fevereiro    = 300
+         *
+         * saldo = 1.210
+         */
 
-        InvestimentoMovimentacao mov1 = new InvestimentoMovimentacao();
-        mov1.setValor(BigDecimal.valueOf(1000));
-        mov1.setData(LocalDate.of(2026, 1, 1));
-        mov1.setTipo(TipoInvestimento.APORTE);
-        mov1.setInvestimento(investimento);
-        mov1.setTransacao(aporteTx);
 
-        investimentoMovimentacaoRepo.save(mov1);
 
-        // =====================================
-        // RENDIMENTO
-        // =====================================
 
-        Transacao rendimentoTx = new Transacao();
-        rendimentoTx.setDescricao("Investimento: CDB Nubank");
-        rendimentoTx.setValor(BigDecimal.valueOf(10));
-        rendimentoTx.setMetodoPagamento(MetodoPagamento.TRANSFERENCIA);
-        rendimentoTx.setStatus(StatusPagamento.PAGO);
-        rendimentoTx.setData(LocalDate.of(2026, 2, 1));
-        rendimentoTx.setCategoria(investimentos);
-        rendimentoTx.setUsuario(usuario);
+// =====================================
+// APORTE - JULHO
+// =====================================
 
-        transacaoRepo.save(rendimentoTx);
+        Transacao aporteJulhoTx =
+                new Transacao();
 
-        InvestimentoMovimentacao mov2 = new InvestimentoMovimentacao();
-        mov2.setValor(BigDecimal.valueOf(10));
-        mov2.setData(LocalDate.of(2026, 2, 1));
-        mov2.setTipo(TipoInvestimento.RENDIMENTO);
-        mov2.setInvestimento(investimento);
-        mov2.setTransacao(rendimentoTx);
+        aporteJulhoTx.setDescricao(
+                "Aporte em investimento: CDB Nubank"
+        );
 
-        investimentoMovimentacaoRepo.save(mov2);
+        aporteJulhoTx.setValor(
+                BigDecimal.valueOf(400)
+        );
+
+        aporteJulhoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        aporteJulhoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        aporteJulhoTx.setData(
+                LocalDate.of(
+                        2026,
+                        7,
+                        10
+                )
+        );
+
+        aporteJulhoTx.setCategoria(
+                investimentos
+        );
+
+        aporteJulhoTx.setUsuario(
+                usuario
+        );
+
+        aporteJulhoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                aporteJulhoTx
+        );
+
+
+        InvestimentoMovimentacao movAporteJulho =
+                new InvestimentoMovimentacao();
+
+        movAporteJulho.setValor(
+                BigDecimal.valueOf(400)
+        );
+
+        movAporteJulho.setData(
+                LocalDateTime.of(
+                        2026,
+                        7,
+                        10,
+                        10,
+                        0
+                )
+        );
+
+        movAporteJulho.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movAporteJulho.setInvestimento(
+                investimento
+        );
+
+        movAporteJulho.setTransacao(
+                aporteJulhoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movAporteJulho
+        );
+
+
+// =====================================
+// RESGATE - JULHO
+// =====================================
+
+        Transacao resgateJulhoTx =
+                new Transacao();
+
+        resgateJulhoTx.setDescricao(
+                "Resgate de investimento: CDB Nubank"
+        );
+
+        resgateJulhoTx.setValor(
+                BigDecimal.valueOf(100)
+        );
+
+        resgateJulhoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        resgateJulhoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        resgateJulhoTx.setData(
+                LocalDate.of(
+                        2026,
+                        7,
+                        20
+                )
+        );
+
+        resgateJulhoTx.setCategoria(
+                resgateInvestimento
+        );
+
+        resgateJulhoTx.setUsuario(
+                usuario
+        );
+
+        resgateJulhoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                resgateJulhoTx
+        );
+
+
+        InvestimentoMovimentacao movResgateJulho =
+                new InvestimentoMovimentacao();
+
+        movResgateJulho.setValor(
+                BigDecimal.valueOf(100)
+        );
+
+        movResgateJulho.setData(
+                LocalDateTime.of(
+                        2026,
+                        7,
+                        20,
+                        14,
+                        0
+                )
+        );
+
+        movResgateJulho.setTipo(
+                TipoInvestimento.RESGATE
+        );
+
+        movResgateJulho.setInvestimento(
+                investimento
+        );
+
+        movResgateJulho.setTransacao(
+                resgateJulhoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movResgateJulho
+        );
+
+
+
+
+// =====================================
+// APORTE - AGOSTO
+// =====================================
+
+        Transacao aporteAgostoTx =
+                new Transacao();
+
+        aporteAgostoTx.setDescricao(
+                "Aporte em investimento: CDB Nubank"
+        );
+
+        aporteAgostoTx.setValor(
+                BigDecimal.valueOf(500)
+        );
+
+        aporteAgostoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        aporteAgostoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        aporteAgostoTx.setData(
+                LocalDate.of(
+                        2026,
+                        8,
+                        5
+                )
+        );
+
+        aporteAgostoTx.setCategoria(
+                investimentos
+        );
+
+        aporteAgostoTx.setUsuario(
+                usuario
+        );
+
+        aporteAgostoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                aporteAgostoTx
+        );
+
+
+        InvestimentoMovimentacao movAporteAgosto =
+                new InvestimentoMovimentacao();
+
+        movAporteAgosto.setValor(
+                BigDecimal.valueOf(500)
+        );
+
+        movAporteAgosto.setData(
+                LocalDateTime.of(
+                        2026,
+                        8,
+                        5,
+                        10,
+                        0
+                )
+        );
+
+        movAporteAgosto.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movAporteAgosto.setInvestimento(
+                investimento
+        );
+
+        movAporteAgosto.setTransacao(
+                aporteAgostoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movAporteAgosto
+        );
+
+
+// =====================================
+// RESGATE - AGOSTO
+// =====================================
+
+        Transacao resgateAgostoTx =
+                new Transacao();
+
+        resgateAgostoTx.setDescricao(
+                "Resgate de investimento: CDB Nubank"
+        );
+
+        resgateAgostoTx.setValor(
+                BigDecimal.valueOf(200)
+        );
+
+        resgateAgostoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        resgateAgostoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        resgateAgostoTx.setData(
+                LocalDate.of(
+                        2026,
+                        8,
+                        12
+                )
+        );
+
+        resgateAgostoTx.setCategoria(
+                resgateInvestimento
+        );
+
+        resgateAgostoTx.setUsuario(
+                usuario
+        );
+
+        resgateAgostoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                resgateAgostoTx
+        );
+
+
+        InvestimentoMovimentacao movResgateAgosto =
+                new InvestimentoMovimentacao();
+
+        movResgateAgosto.setValor(
+                BigDecimal.valueOf(200)
+        );
+
+        movResgateAgosto.setData(
+                LocalDateTime.of(
+                        2026,
+                        8,
+                        12,
+                        14,
+                        0
+                )
+        );
+
+        movResgateAgosto.setTipo(
+                TipoInvestimento.RESGATE
+        );
+
+        movResgateAgosto.setInvestimento(
+                investimento
+        );
+
+        movResgateAgosto.setTransacao(
+                resgateAgostoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movResgateAgosto
+        );
+
+
+// =====================================
+// ATUALIZAÇÃO - AGOSTO
+// =====================================
+
+//        InvestimentoValorAtualizacao atualizacaoAgosto =
+//                new InvestimentoValorAtualizacao();
+//
+//        atualizacaoAgosto.setInvestimento(
+//                investimento
+//        );
+//
+//        atualizacaoAgosto.setValorAtual(
+//                BigDecimal.valueOf(2000)
+//        );
+//
+//        atualizacaoAgosto.setReferencia(
+//                LocalDate.of(
+//                        2026,
+//                        8,
+//                        1
+//                )
+//        );
+//
+//        atualizacaoAgosto.setDataAtualizacao(
+//                LocalDateTime.of(
+//                        2026,
+//                        8,
+//                        31,
+//                        18,
+//                        0
+//                )
+//        );
+//
+//        investimentoValorAtualizacaoRepo.save(
+//                atualizacaoAgosto
+//        );
+
+
+// ===================================================
+// SEGUNDO INVESTIMENTO - TESOURO SELIC
+// ===================================================
+
+        Investimento tesouro =
+                new Investimento();
+
+        tesouro.setNome(
+                "Tesouro Selic"
+        );
+
+        tesouro.setTipo(
+                TipoAtivo.RENDA_FIXA
+        );
+
+        tesouro.setUsuario(
+                usuario
+        );
+
+        tesouro.setDataCriacao(
+                LocalDate.of(
+                        2026,
+                        7,
+                        1
+                )
+        );
+
+        tesouro.setEncerrado(
+                false
+        );
+
+        investimentoRepo.save(
+                tesouro
+        );
+
+
+// =====================================
+// APORTE INICIAL TESOURO - JULHO
+// =====================================
+
+        Transacao aporteTesouroJulhoTx =
+                new Transacao();
+
+        aporteTesouroJulhoTx.setDescricao(
+                "Aporte em investimento: Tesouro Selic"
+        );
+
+        aporteTesouroJulhoTx.setValor(
+                BigDecimal.valueOf(2000)
+        );
+
+        aporteTesouroJulhoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        aporteTesouroJulhoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        aporteTesouroJulhoTx.setData(
+                LocalDate.of(
+                        2026,
+                        7,
+                        5
+                )
+        );
+
+        aporteTesouroJulhoTx.setCategoria(
+                investimentos
+        );
+
+        aporteTesouroJulhoTx.setUsuario(
+                usuario
+        );
+
+        aporteTesouroJulhoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                aporteTesouroJulhoTx
+        );
+
+
+        InvestimentoMovimentacao movTesouroJulho =
+                new InvestimentoMovimentacao();
+
+        movTesouroJulho.setValor(
+                BigDecimal.valueOf(2000)
+        );
+
+        movTesouroJulho.setData(
+                LocalDateTime.of(
+                        2026,
+                        7,
+                        5,
+                        11,
+                        0
+                )
+        );
+
+        movTesouroJulho.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movTesouroJulho.setInvestimento(
+                tesouro
+        );
+
+        movTesouroJulho.setTransacao(
+                aporteTesouroJulhoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movTesouroJulho
+        );
+
+
+
+
+// =====================================
+// APORTE TESOURO - AGOSTO
+// =====================================
+
+        Transacao aporteTesouroAgostoTx =
+                new Transacao();
+
+        aporteTesouroAgostoTx.setDescricao(
+                "Aporte em investimento: Tesouro Selic"
+        );
+
+        aporteTesouroAgostoTx.setValor(
+                BigDecimal.valueOf(300)
+        );
+
+        aporteTesouroAgostoTx.setMetodoPagamento(
+                MetodoPagamento.TRANSFERENCIA
+        );
+
+        aporteTesouroAgostoTx.setStatus(
+                StatusPagamento.PAGO
+        );
+
+        aporteTesouroAgostoTx.setData(
+                LocalDate.of(
+                        2026,
+                        8,
+                        8
+                )
+        );
+
+        aporteTesouroAgostoTx.setCategoria(
+                investimentos
+        );
+
+        aporteTesouroAgostoTx.setUsuario(
+                usuario
+        );
+
+        aporteTesouroAgostoTx.setBloqueadaSistema(
+                true
+        );
+
+        transacaoRepo.save(
+                aporteTesouroAgostoTx
+        );
+
+
+        InvestimentoMovimentacao movTesouroAgosto =
+                new InvestimentoMovimentacao();
+
+        movTesouroAgosto.setValor(
+                BigDecimal.valueOf(300)
+        );
+
+        movTesouroAgosto.setData(
+                LocalDateTime.of(
+                        2026,
+                        8,
+                        8,
+                        11,
+                        0
+                )
+        );
+
+        movTesouroAgosto.setTipo(
+                TipoInvestimento.APORTE
+        );
+
+        movTesouroAgosto.setInvestimento(
+                tesouro
+        );
+
+        movTesouroAgosto.setTransacao(
+                aporteTesouroAgostoTx
+        );
+
+        investimentoMovimentacaoRepo.save(
+                movTesouroAgosto
+        );
+
+
 
         // =====================================
         // PLANEJAMENTO

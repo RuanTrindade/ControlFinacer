@@ -3,9 +3,15 @@ package TCC.ControleFincanceiro.dto.investimento;
 import TCC.ControleFincanceiro.entity.enumerated.TipoInvestimento;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record InvestimentoMovimentacaoRequestDTO(
+
         BigDecimal valor,
-        TipoInvestimento tipo
+
+        TipoInvestimento tipo,
+
+        LocalDate referencia
+
 ) {
 }

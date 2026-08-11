@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -18,15 +18,29 @@ public class InvestimentoMovimentacao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Column(
+            nullable = false,
+            precision = 19,
+            scale = 2
+    )
     private BigDecimal valor;
 
-    private LocalDate data;
+
+    @Column(nullable = false)
+    private LocalDateTime data;
+
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TipoInvestimento tipo;
 
+
     @ManyToOne
-    @JoinColumn(name = "investimento_id", nullable = false)
+    @JoinColumn(
+            name = "investimento_id",
+            nullable = false
+    )
     private Investimento investimento;
 
 

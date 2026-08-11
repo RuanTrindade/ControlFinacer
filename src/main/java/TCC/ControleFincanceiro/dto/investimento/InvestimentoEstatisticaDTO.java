@@ -3,9 +3,13 @@ package TCC.ControleFincanceiro.dto.investimento;
 import java.math.BigDecimal;
 
 public record InvestimentoEstatisticaDTO(
-        Long id, String nome,
-        BigDecimal totalInvestido,
+
+        Long id,
+        String nome,
+        BigDecimal totalAportado,
         BigDecimal totalResgatado,
-        BigDecimal totalRendimento,
+        BigDecimal rendimento,
         BigDecimal saldoAtual
-) {}
+
+) {
+}

@@ -22,7 +22,7 @@ public class AnaliseIAService {
     private final TransacaoRepository transacaoRepository;
     private final PlanejamentoCategoriaService planejamentoCategoriaService;
     private final ObjetivoRepository objetivoRepository;
-    private final InvestimentoMovimentacaoRepository investimentoRepository;
+    private final InvestimentoService investimentoService;
 
     // ==============================
     // MÉTODO PRINCIPAL
@@ -31,7 +31,11 @@ public class AnaliseIAService {
 
         BigDecimal receita = transacaoRepository.totalReceitas(usuarioId);
         BigDecimal despesas = transacaoRepository.totalDespesas(usuarioId);
-        BigDecimal investimentos = investimentoRepository.calcularSaldoTotalUsuario(usuarioId);
+        BigDecimal investimentos =
+                investimentoService
+                        .obterSaldoAtualCarteira(
+                                usuarioId
+                        );
 
         List<PlanejamentoCategoriaResumoDTO> categorias =
                 planejamentoCategoriaService.resumoPorUsuario(usuarioId);

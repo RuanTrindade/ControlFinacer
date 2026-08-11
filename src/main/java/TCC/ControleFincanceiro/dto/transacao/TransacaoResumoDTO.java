@@ -24,7 +24,12 @@ public record TransacaoResumoDTO(
 
         Long objetivoId,
         String objetivoNome,
-        Boolean objetivoFinalizado
+        Boolean objetivoFinalizado,
+
+        Long investimentoId,
+        String investimentoNome,
+        Boolean investimentoEncerrado
+
 
 ) {
 }
