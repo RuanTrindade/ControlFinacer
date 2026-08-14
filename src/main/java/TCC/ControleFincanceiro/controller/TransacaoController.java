@@ -5,6 +5,7 @@ import TCC.ControleFincanceiro.dto.transacao.TransacaoCriarDTO;
 import TCC.ControleFincanceiro.dto.transacao.TransacaoResumoDTO;
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import TCC.ControleFincanceiro.service.TransacaoService;
 
 import lombok.RequiredArgsConstructor;
@@ -162,6 +163,9 @@ public class TransacaoController {
             Long usuarioId,
 
             @RequestParam(required = false)
+            TipoTransacao tipo,
+
+            @RequestParam(required = false)
             Long categoriaId,
 
             @RequestParam(required = false)
@@ -197,6 +201,7 @@ public class TransacaoController {
         Page<TransacaoResumoDTO> transacoes =
                 transacaoService.filtrarTransacoes(
                         usuarioId,
+                        tipo,
                         categoriaId,
                         status,
                         metodoPagamento,

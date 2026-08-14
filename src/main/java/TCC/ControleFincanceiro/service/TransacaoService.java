@@ -8,6 +8,7 @@ import TCC.ControleFincanceiro.entity.*;
 
 import TCC.ControleFincanceiro.entity.enumerated.MetodoPagamento;
 import TCC.ControleFincanceiro.entity.enumerated.StatusPagamento;
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import TCC.ControleFincanceiro.repository.*;
 
 import lombok.RequiredArgsConstructor;
@@ -384,6 +385,7 @@ public class TransacaoService {
 
     public Page<TransacaoResumoDTO> filtrarTransacoes(
             Long usuarioId,
+            TipoTransacao tipo,
             Long categoriaId,
             StatusPagamento status,
             MetodoPagamento metodoPagamento,
@@ -393,6 +395,7 @@ public class TransacaoService {
             BigDecimal valorMax,
             String descricao,
             Pageable pageable
+
     ) {
 
         if (usuarioId == null) {
@@ -448,6 +451,7 @@ public class TransacaoService {
         Page<Transacao> transacoes =
                 transacaoRepository.filtrar(
                         usuarioId,
+                        tipo,
                         categoriaId,
                         status,
                         metodoPagamento,

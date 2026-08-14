@@ -5,8 +5,15 @@ import java.util.List;
 public record AnaliseIADTO(
         String resumo,
         String nivelFinanceiro,
-        List<AlertaDTO> alertas,
-        List<SugestaoDTO> sugestoes,
+        IndicadoresIADTO indicadores,
+        ComparacaoMensalIADTO comparacaoMensal,
+        List<AlertaIAInternoDTO> alertas,
+        List<RedistribuicaoIAInternoDTO> redistribuicoes,
+        List<SugestaoIAInternoDTO> sugestoes,
+        List<ObjetivoIADTO> objetivos,
+        InvestimentoIADTO investimentos,
         List<String> insights,
-        PrevisaoDTO previsao
-) {}
+        List<HistoricoIADTO> historico
+
+) {
+}

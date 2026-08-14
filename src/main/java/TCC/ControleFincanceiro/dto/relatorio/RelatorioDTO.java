@@ -5,7 +5,10 @@ import java.util.List;
 
 public record RelatorioDTO(
         List<RelatorioMensalDTO> historico,
+        List<RelatorioCategoriaDTO> categoriasPlanejamento,
         BigDecimal receitaTotal,
         BigDecimal despesaTotal,
         BigDecimal investimentoTotal
-) {}
+
+) {
+}

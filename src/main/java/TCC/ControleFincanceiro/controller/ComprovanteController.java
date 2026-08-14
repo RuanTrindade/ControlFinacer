@@ -1,35 +1,70 @@
 package TCC.ControleFincanceiro.controller;
 
 import TCC.ControleFincanceiro.dto.comprovante.ComprovanteResponseDTO;
-import TCC.ControleFincanceiro.entity.Comprovante;
+import TCC.ControleFincanceiro.dto.ia.TransacaoIADTO;
 import TCC.ControleFincanceiro.service.ComprovanteService;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequestMapping("/comprovantes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class ComprovanteController {
 
     private final ComprovanteService service;
 
-    // ==============================
-    // UPLOAD
-    // ==============================
+
+    /* ===================================================
+       UPLOAD ANTIGO
+    =================================================== */
+
     @PostMapping("/upload")
-    public ComprovanteResponseDTO upload(@RequestParam MultipartFile file,
-                                         @RequestParam Long usuarioId) {
+    public ComprovanteResponseDTO upload(
 
-        return service.upload(file, usuarioId);
+            @RequestParam MultipartFile file,
+
+            @RequestParam Long usuarioId
+
+    ) {
+
+        return service.upload(
+                file,
+                usuarioId
+        );
     }
 
-    // ==============================
-    // ANALISAR
-    // ==============================
-    @PostMapping("/{id}/analisar")
-    public String analisar(@PathVariable Long id) {
 
-        return service.analisar(id);
+    /* ===================================================
+       ANALISAR ARQUIVO PARA PREENCHER O FORM
+    =================================================== */
+
+    @PostMapping(
+            value = "/analisar-arquivo",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<TransacaoIADTO> analisarArquivo(
+
+            @RequestPart("comprovante")
+            MultipartFile comprovante
+
+    ) {
+
+        return ResponseEntity.ok(
+
+                service.analisarArquivo(
+                        comprovante
+                )
+
+        );
     }
+
 }

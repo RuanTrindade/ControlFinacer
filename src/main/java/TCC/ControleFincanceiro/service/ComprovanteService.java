@@ -97,7 +97,7 @@ public class ComprovanteService {
         Transacao t = new Transacao();
 
         t.setDescricao(dto.descricao());
-        t.setValor(BigDecimal.valueOf(dto.valor()));
+        t.setValor(dto.valor());
         t.setData(LocalDate.parse(dto.data()));
 
 
@@ -132,53 +132,120 @@ public class ComprovanteService {
     }
 
 
-    private String chamarIA(String texto) {
+    private String chamarIA(
+            String texto
+    ) {
 
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate =
+                new RestTemplate();
 
-        String url = "http://localhost:11434/api/generate";
 
-        String prompt = """
-Você é um sistema que extrai dados de comprovantes PIX.
+        String url =
+                "http://localhost:11434/api/generate";
 
-⚠️ SUA RESPOSTA DEVE SER APENAS UM JSON VÁLIDO.
-⚠️ NÃO escreva explicações.
-⚠️ NÃO escreva texto antes ou depois.
-⚠️ NÃO use markdown.
 
-RETORNE SOMENTE:
+        String prompt =
+                """
+                Você extrai informações de comprovantes financeiros.
+    
+                Responda SOMENTE JSON válido.
+    
+                Não use markdown.
+                Não escreva explicações.
+                Não invente dados.
+    
+                Estrutura obrigatória:
+    
+                {
+                  "descricao": "",
+                  "valor": 0,
+                  "data": "",
+                  "metodoPagamento": "",
+                  "tipo": ""
+                }
+    
+                REGRAS:
+    
+                descricao:
+                nome do estabelecimento, pessoa ou descrição
+                identificável no comprovante.
+    
+                valor:
+                valor principal da transação.
+    
+                data:
+                formato YYYY-MM-DD.
+                Se não identificar com segurança, deixe "".
+    
+                metodoPagamento:
+                use somente:
+                PIX
+                BOLETO
+                CARTAO_CREDITO
+                DEBITO
+                DINHEIRO
+                TRANSFERENCIA
+    
+                Se não souber, deixe "".
+    
+                tipo:
+                use somente:
+                RECEITA
+                DESPESA
+    
+                Se não for possível determinar com segurança,
+                deixe "".
+    
+                Corrija apenas erros claros causados pelo OCR.
+    
+                TEXTO EXTRAÍDO:
+    
+                """
+                        +
+                        texto;
 
-{
-  "descricao": "",
-  "valor": 0,
-  "data": "YYYY-MM-DD",
-  "metodoPagamento": "",
-  "tipo": "DESPESA"
-}
 
-TEXTO:
-""" + texto + """
+        Map<String, Object> body =
+                Map.of(
+                        "model",
+                        "llama3",
+                        "prompt",
+                        prompt,
+                        "stream",
+                        false,
+                        "format",
+                        "json",
+                        "options",
+                        Map.of(
+                                "temperature",
+                                0.1
+                        )
+                );
 
-REGRAS:
-- descricao = nome do app ou estabelecimento (ex: PicPay)
-- valor = número exato (ex: 33.00)
-- data = converter corretamente para YYYY-MM-DD
-- metodoPagamento = PIX, CARTAO, DINHEIRO (se identificar)
-- tipo = DESPESA ou RECEITA
-- corrigir erros do OCR
-- não inventar dados
-- se não souber metodoPagamento, deixar vazio
-""";
 
-        Map<String, Object> body = Map.of(
-                "model", "llama3",
-                "prompt", prompt,
-                "stream", false
-        );
+        Map<?, ?> response =
+                restTemplate.postForObject(
+                        url,
+                        body,
+                        Map.class
+                );
 
-        Map response = restTemplate.postForObject(url, body, Map.class);
 
-        return (String) response.get("response");
+        if (
+                response == null ||
+                        response.get("response") == null
+        ) {
+
+            throw new RuntimeException(
+                    "A IA não retornou resposta."
+            );
+
+        }
+
+
+        return response
+                .get("response")
+                .toString();
     }
 
     private String extrairJson(String resposta) {
@@ -265,6 +332,111 @@ REGRAS:
                     "Erro ao salvar comprovante",
                     e
             );
+        }
+    }
+
+
+    public TransacaoIADTO analisarArquivo(
+            MultipartFile file
+    ) {
+
+        Path caminhoTemporario = null;
+
+        try {
+
+            if (
+                    file == null ||
+                            file.isEmpty()
+            ) {
+
+                throw new RuntimeException(
+                        "Nenhum comprovante enviado."
+                );
+            }
+
+
+            String nomeOriginal =
+                    file.getOriginalFilename();
+
+
+            String extensao =
+                    "";
+
+            if (
+                    nomeOriginal != null &&
+                            nomeOriginal.contains(".")
+            ) {
+
+                extensao =
+                        nomeOriginal.substring(
+                                nomeOriginal.lastIndexOf(".")
+                        );
+            }
+
+
+            caminhoTemporario =
+                    Files.createTempFile(
+                            "comprovante_",
+                            extensao
+                    );
+
+
+            Files.write(
+                    caminhoTemporario,
+                    file.getBytes()
+            );
+
+
+            String texto =
+                    ocrService.extrairTexto(
+                            caminhoTemporario.toString()
+                    );
+
+
+            String respostaIA =
+                    chamarIA(
+                            texto
+                    );
+
+
+            String json =
+                    extrairJson(
+                            respostaIA
+                    );
+
+
+            return converter(
+                    json
+            );
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Erro ao analisar comprovante: "
+                            +
+                            e.getMessage()
+            );
+
+        }
+        finally {
+
+            if (
+                    caminhoTemporario != null
+            ) {
+
+                try {
+
+                    Files.deleteIfExists(
+                            caminhoTemporario
+                    );
+
+                }
+                catch (Exception ignored) {
+                }
+
+            }
+
         }
     }
 }
