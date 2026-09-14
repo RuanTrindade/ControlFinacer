@@ -138,18 +138,25 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
     );
 
     @Query("""
-    SELECT COALESCE(SUM(t.valor), 0)
-    FROM Transacao t
-    WHERE t.usuario.id = :usuarioId
-    AND t.categoria.tipo = 'DESPESA'
-    AND t.status = :status
-    AND t.categoria.id NOT IN (
-        SELECT pc.categoria.id
-        FROM PlanejamentoCategoria pc
-        WHERE pc.planejamentoMensal.id = :planejamentoId
-    )
-    AND MONTH(t.data) = :mes
-    AND YEAR(t.data) = :ano
+SELECT COALESCE(SUM(t.valor), 0)
+FROM Transacao t
+WHERE t.usuario.id = :usuarioId
+AND t.categoria.tipo = 'DESPESA'
+AND t.status = :status
+
+AND (
+    t.categoria.internaSistema = false
+    OR t.categoria.internaSistema IS NULL
+)
+
+AND t.categoria.id NOT IN (
+    SELECT pc.categoria.id
+    FROM PlanejamentoCategoria pc
+    WHERE pc.planejamentoMensal.id = :planejamentoId
+)
+
+AND MONTH(t.data) = :mes
+AND YEAR(t.data) = :ano
 """)
     BigDecimal totalDespesasNaoPlanejadasPorStatus(
             @Param("usuarioId") Long usuarioId,

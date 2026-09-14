@@ -3,66 +3,149 @@ package TCC.ControleFincanceiro.service;
 import TCC.ControleFincanceiro.dto.categoria.CategoriaAtualizarDTO;
 import TCC.ControleFincanceiro.dto.categoria.CategoriaCriarDTO;
 import TCC.ControleFincanceiro.dto.categoria.CategoriaResumoDTO;
+
 import TCC.ControleFincanceiro.entity.Categoria;
 import TCC.ControleFincanceiro.entity.Usuario;
+
+import TCC.ControleFincanceiro.entity.enumerated.TipoTransacao;
 import TCC.ControleFincanceiro.repository.CategoriaRepository;
 import TCC.ControleFincanceiro.repository.TransacaoRepository;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
 public class CategoriaService {
 
+
     private final CategoriaRepository categoriaRepository;
+
     private final UsuarioRepository usuarioRepository;
+
     private final TransacaoRepository transacaoRepository;
 
 
+    /* ===================================================
+       CRIAR
+    =================================================== */
 
     public CategoriaResumoDTO criarCategoria(
             CategoriaCriarDTO dto
     ) {
 
         Usuario usuario =
-                usuarioRepository.findById(dto.usuarioId())
-                        .orElseThrow(() ->
-                                new RuntimeException("Usuário não encontrado"));
+                usuarioRepository
+                        .findById(
+                                dto.usuarioId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Usuário não encontrado"
+                                        )
+                        );
 
-        if (categoriaRepository.existsByNomeAndUsuarioId(
-                dto.nome(),
-                dto.usuarioId()
-        )) {
+
+        if (
+                categoriaRepository
+                        .existsByNomeAndUsuarioId(
+                                dto.nome(),
+                                dto.usuarioId()
+                        )
+        ) {
 
             throw new RuntimeException(
                     "Categoria já existe para este usuário"
             );
+
         }
 
-        Categoria categoria = new Categoria();
 
-        categoria.setNome(dto.nome());
-        categoria.setCor(dto.cor());
-        categoria.setIcone(dto.icone());
-        categoria.setTipo(dto.tipo());
-        categoria.setUsuario(usuario);
+        Categoria categoria =
+                new Categoria();
 
-        categoria.setPadraoSistema(false);
-        categoria.setInternaSistema(false);
+
+        categoria.setNome(
+                dto.nome()
+        );
+
+        categoria.setCor(
+                dto.cor()
+        );
+
+        categoria.setIcone(
+                dto.icone()
+        );
+
+        categoria.setTipo(
+                dto.tipo()
+        );
+
+        categoria.setUsuario(
+                usuario
+        );
+
+        categoria.setPadraoSistema(
+                false
+        );
+
+        categoria.setInternaSistema(
+                false
+        );
+
 
         Categoria salva =
-                categoriaRepository.save(categoria);
+                categoriaRepository.save(
+                        categoria
+                );
 
-        return toResumoDTO(salva);
+
+        return toResumoDTO(
+                salva
+        );
+
     }
 
 
+    /* ===================================================
+       LISTAGEM PAGINADA
+       Tela Categorias
+    =================================================== */
 
-    public List<CategoriaResumoDTO> listarCategorias(
+    public Page<CategoriaResumoDTO> listarCategoriasPaginado(
+            Long usuarioId,
+            TipoTransacao tipo,
+            Pageable pageable
+    ) {
+
+        return categoriaRepository
+                .listarCategoriasDisponiveisPaginado(
+                        usuarioId,
+                        tipo,
+                        pageable
+                )
+                .map(this::toResumoDTO);
+    }
+
+    /* ===================================================
+       LISTAGEM COMPLETA
+       Selects e formulários
+    =================================================== */
+
+    public List<CategoriaResumoDTO>
+    listarCategorias(
+
             Long usuarioId
+
     ) {
 
         return categoriaRepository
@@ -70,130 +153,256 @@ public class CategoriaService {
                         usuarioId
                 )
                 .stream()
-                .map(this::toResumoDTO)
+                .map(
+                        this::toResumoDTO
+                )
                 .toList();
+
     }
 
 
+    /* ===================================================
+       BUSCAR
+    =================================================== */
 
     public CategoriaResumoDTO buscarPorId(
             Long categoriaId
     ) {
 
         Categoria categoria =
-                categoriaRepository.findById(categoriaId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Categoria não encontrada"));
+                categoriaRepository
+                        .findById(
+                                categoriaId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Categoria não encontrada"
+                                        )
+                        );
 
-        return toResumoDTO(categoria);
+
+        return toResumoDTO(
+                categoria
+        );
+
     }
 
 
+    /* ===================================================
+       ATUALIZAR
+    =================================================== */
 
     public CategoriaResumoDTO atualizarCategoria(
+
             Long categoriaId,
+
             Long usuarioId,
+
             CategoriaAtualizarDTO dto
+
     ) {
 
         Categoria categoria =
-                categoriaRepository.findById(categoriaId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Categoria não encontrada"));
+                categoriaRepository
+                        .findById(
+                                categoriaId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Categoria não encontrada"
+                                        )
+                        );
 
 
-        if (categoria.getPadraoSistema()) {
+        if (
+                Boolean.TRUE.equals(
+                        categoria.getPadraoSistema()
+                )
+        ) {
+
             throw new RuntimeException(
                     "Categorias padrão não podem ser alteradas"
             );
+
         }
 
 
-        if (!categoria.getUsuario()
-                .getId()
-                .equals(usuarioId)) {
+        if (
+                categoria.getUsuario() == null
+                        ||
+                        !categoria
+                                .getUsuario()
+                                .getId()
+                                .equals(
+                                        usuarioId
+                                )
+        ) {
 
-            throw new RuntimeException("Acesso negado");
+            throw new RuntimeException(
+                    "Acesso negado"
+            );
+
         }
-
 
 
         boolean nomeExiste =
-                categoriaRepository.existsByNomeAndUsuarioId(
-                        dto.nome(),
-                        usuarioId
-                );
+                categoriaRepository
+                        .existsByNomeAndUsuarioId(
+                                dto.nome(),
+                                usuarioId
+                        );
 
-        if (nomeExiste &&
-                !categoria.getNome().equalsIgnoreCase(dto.nome())) {
+
+        if (
+                nomeExiste
+                        &&
+                        !categoria
+                                .getNome()
+                                .equalsIgnoreCase(
+                                        dto.nome()
+                                )
+        ) {
 
             throw new RuntimeException(
                     "Categoria já existe para este usuário"
             );
+
         }
 
-        categoria.setNome(dto.nome());
-        categoria.setCor(dto.cor());
-        categoria.setIcone(dto.icone());
-        categoria.setTipo(dto.tipo());
+
+        categoria.setNome(
+                dto.nome()
+        );
+
+        categoria.setCor(
+                dto.cor()
+        );
+
+        categoria.setIcone(
+                dto.icone()
+        );
+
+        categoria.setTipo(
+                dto.tipo()
+        );
+
 
         Categoria salva =
-                categoriaRepository.save(categoria);
+                categoriaRepository.save(
+                        categoria
+                );
 
-        return toResumoDTO(salva);
+
+        return toResumoDTO(
+                salva
+        );
+
     }
 
 
+    /* ===================================================
+       DELETAR
+    =================================================== */
 
     public void deletarCategoria(
+
             Long categoriaId,
+
             Long usuarioId
+
     ) {
 
         Categoria categoria =
-                categoriaRepository.findById(categoriaId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Categoria não encontrada"));
+                categoriaRepository
+                        .findById(
+                                categoriaId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Categoria não encontrada"
+                                        )
+                        );
 
 
+        if (
+                Boolean.TRUE.equals(
+                        categoria.getPadraoSistema()
+                )
+        ) {
 
-        if (categoria.getPadraoSistema()) {
             throw new RuntimeException(
                     "Categorias padrão não podem ser removidas"
             );
+
         }
 
 
+        if (
+                categoria.getUsuario() == null
+                        ||
+                        !categoria
+                                .getUsuario()
+                                .getId()
+                                .equals(
+                                        usuarioId
+                                )
+        ) {
 
-        if (!categoria.getUsuario()
-                .getId()
-                .equals(usuarioId)) {
+            throw new RuntimeException(
+                    "Acesso negado"
+            );
 
-            throw new RuntimeException("Acesso negado");
         }
 
-        if (transacaoRepository.existsByCategoriaId(categoriaId)) {
+
+        if (
+                transacaoRepository
+                        .existsByCategoriaId(
+                                categoriaId
+                        )
+        ) {
+
             throw new RuntimeException(
                     "Essa categoria não pode ser excluída porque está sendo usada em uma ou mais transações"
             );
+
         }
 
-        categoriaRepository.delete(categoria);
+
+        categoriaRepository.delete(
+                categoria
+        );
+
     }
 
 
+    /* ===================================================
+       CONVERSÃO
+    =================================================== */
 
     private CategoriaResumoDTO toResumoDTO(
             Categoria categoria
     ) {
 
         return new CategoriaResumoDTO(
+
                 categoria.getId(),
+
                 categoria.getNome(),
+
                 categoria.getCor(),
+
                 categoria.getIcone(),
+
                 categoria.getTipo(),
+
                 categoria.getPadraoSistema()
+
         );
+
     }
+
 }

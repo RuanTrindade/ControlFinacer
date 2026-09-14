@@ -68,68 +68,7 @@ public class ComprovanteService {
         }
     }
 
-    public String analisar(Long comprovanteId) {
 
-        Comprovante comp = comprovanteRepository.findById(comprovanteId)
-                .orElseThrow(() -> new RuntimeException("Comprovante não encontrado"));
-
-
-        String texto = ocrService.extrairTexto(comp.getUrlArquivo());
-
-
-        String resposta = chamarIA(texto);
-
-
-        String json = extrairJson(resposta);
-
-
-        comp.setDadosExtraidos(json);
-        comp.setProcessado(true);
-        comprovanteRepository.save(comp);
-
-
-        TransacaoIADTO dto = converter(json);
-
-
-        Usuario usuario = comp.getUsuario();
-
-
-        Transacao t = new Transacao();
-
-        t.setDescricao(dto.descricao());
-        t.setValor(dto.valor());
-        t.setData(LocalDate.parse(dto.data()));
-
-
-        if (dto.metodoPagamento() != null) {
-            try {
-                t.setMetodoPagamento(MetodoPagamento.valueOf(dto.metodoPagamento().toUpperCase()));
-            } catch (Exception e) {
-                t.setMetodoPagamento(MetodoPagamento.PIX);
-            }
-        } else {
-            t.setMetodoPagamento(MetodoPagamento.PIX);
-        }
-
-
-        t.setStatus(StatusPagamento.PAGO);
-
-
-        t.setUsuario(usuario);
-
-
-        t.setComprovante(comp);
-
-// categoria (temporário - depois usuário escolhe)
-        Categoria categoria = categoriaRepository.findById(1L).orElse(null);
-        t.setCategoria(categoria);
-
-
-        transacaoRepository.save(t);
-
-
-        return json;
-    }
 
 
     private String chamarIA(

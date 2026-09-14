@@ -8,14 +8,18 @@ import TCC.ControleFincanceiro.dto.usuario.UsuarioResponseDTO;
 import TCC.ControleFincanceiro.entity.Usuario;
 import TCC.ControleFincanceiro.repository.UsuarioRepository;
 import TCC.ControleFincanceiro.service.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class AuthController {
 
     private final UsuarioService usuarioService;
@@ -47,31 +51,72 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public String login(
-            @RequestBody LoginDTO dto
-    ) {
+    public UsuarioResponseDTO login(@RequestBody LoginDTO dto) {
 
         Usuario user = usuarioRepository
                 .findByEmail(dto.email())
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuário não encontrado"
-                        )
-                );
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (
-                !passwordEncoder.matches(
-                        dto.senha(),
-                        user.getSenha()
-                )
-        ) {
-
-            throw new RuntimeException(
-                    "Senha inválida"
-            );
+        if (!passwordEncoder.matches(dto.senha(), user.getSenha())) {
+            throw new RuntimeException("Senha inválida");
         }
 
-        return "Login realizado com sucesso 🚀";
+        return new UsuarioResponseDTO(
+                user.getId(),
+                user.getNome(),
+                user.getEmail(),
+                user.getProvider().name(),
+                user.getFotoUrl()
+        );
+    }
+
+
+
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponseDTO> me(
+            @AuthenticationPrincipal OAuth2User principal
+    ) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = principal.getAttribute("email");
+
+        Usuario usuario = usuarioRepository
+                .findByEmail(email)
+                .orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(
+                new UsuarioResponseDTO(
+                        usuario.getId(),
+                        usuario.getNome(),
+                        usuario.getEmail(),
+                        usuario.getProvider().name(),
+                        usuario.getFotoUrl()
+                )
+        );
+    }
+
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            HttpServletRequest request
+    ) {
+
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.invalidate();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
 

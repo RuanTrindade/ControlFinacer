@@ -26,7 +26,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .map(u -> {
-                    // 🔥 atualiza dados se já existir
+
                     u.setNome(nome);
                     u.setGoogleId(googleId);
                     u.setFotoUrl(foto);
@@ -34,7 +34,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
                     return usuarioRepository.save(u);
                 })
                 .orElseGet(() -> {
-                    // 🔥 cria novo se não existir
+
                     Usuario novo = new Usuario();
                     novo.setEmail(email);
                     novo.setNome(nome);

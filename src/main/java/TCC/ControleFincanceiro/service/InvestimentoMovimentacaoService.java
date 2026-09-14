@@ -182,10 +182,7 @@ public class InvestimentoMovimentacaoService {
                     referencia
             );
 
-        }
-
-
-        else {
+        } else {
 
             throw new RuntimeException(
                     "Tipo de movimentação inválido"

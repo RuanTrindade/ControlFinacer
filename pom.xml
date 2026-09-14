@@ -32,9 +32,23 @@
 	<dependencies>
 
 		<!-- Console web do banco H2 (acesso via navegador para testes) -->
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-h2console</artifactId>-->
+<!--		</dependency>-->
+
+		<!-- Banco de dados H2 (em memória, usado para testes/desenvolvimento) -->
+<!--		<dependency>-->
+<!--			<groupId>com.h2database</groupId>-->
+<!--			<artifactId>h2</artifactId>-->
+<!--			<scope>runtime</scope>-->
+<!--		</dependency>-->
+
+		<!-- PostgreSQL -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-h2console</artifactId>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- JPA + Hibernate (persistência de dados no banco) -->
@@ -47,13 +61,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
-		</dependency>
-
-		<!-- Banco de dados H2 (em memória, usado para testes/desenvolvimento) -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Lombok (reduz código boilerplate: getters, setters, etc.) -->

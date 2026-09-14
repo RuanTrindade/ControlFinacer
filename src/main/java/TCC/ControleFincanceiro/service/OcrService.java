@@ -18,22 +18,19 @@ public class OcrService {
 
             Tesseract tesseract = new Tesseract();
 
-            // Caminho do tessdata
+
             tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata");
 
-            // Idioma
+
             tesseract.setLanguage("por");
 
             File file = new File(caminhoArquivo);
 
-            // 🔴 Validação importante
+
             if (!file.exists()) {
                 throw new RuntimeException("Arquivo não encontrado: " + caminhoArquivo);
             }
 
-            // ==========================
-            // 📄 SE FOR PDF
-            // ==========================
             if (caminhoArquivo.toLowerCase().endsWith(".pdf")) {
 
                 PDDocument document = PDDocument.load(file);
@@ -57,9 +54,7 @@ public class OcrService {
                 return textoFinal.toString();
             }
 
-            // ==========================
-            // 🖼️ SE FOR IMAGEM
-            // ==========================
+
             String texto = tesseract.doOCR(file);
 
             System.out.println("=== TEXTO OCR IMAGEM ===");

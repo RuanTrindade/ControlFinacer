@@ -39,9 +39,6 @@ public class RelatorioService {
     private final PlanejamentoCategoriaService planejamentoCategoriaService;
 
 
-    /* ===================================================
-       GERAR RELATÓRIO
-    =================================================== */
 
     public RelatorioDTO gerarRelatorio(
 
@@ -61,19 +58,12 @@ public class RelatorioService {
                 );
 
 
-        /* ===================================================
-           HISTÓRICO DOS ÚLTIMOS 6 MESES
-        =================================================== */
 
         List<RelatorioMensalDTO> historico =
                 new ArrayList<>();
 
 
-        /*
-         * Começamos cinco meses antes
-         * e terminamos exatamente no mês
-         * selecionado pela Topbar.
-         */
+
 
         for (
                 int i = 5;
@@ -96,15 +86,6 @@ public class RelatorioService {
                     referencia.getYear();
 
 
-            /* ===================================================
-               RECEITA
-            ===================================================
-
-               Reaproveitamos a mesma regra do Dashboard:
-
-               - somente receitas normais
-               - resgates internos não entram como nova renda
-            =================================================== */
 
             BigDecimal receita =
                     transacaoRepository
@@ -127,16 +108,6 @@ public class RelatorioService {
             }
 
 
-            /* ===================================================
-               DESPESA
-            ===================================================
-
-               Mesma regra do Dashboard:
-
-               - despesas normais
-               - investimentos não entram
-               - objetivos não entram
-            =================================================== */
 
             BigDecimal despesa =
                     transacaoRepository
@@ -159,16 +130,7 @@ public class RelatorioService {
             }
 
 
-            /* ===================================================
-               INVESTIMENTO
-            ===================================================
 
-               Os aportes continuam sendo transações
-               do tipo DESPESA.
-
-               Porém, no relatório, separamos pela
-               categoria padrão "Investimentos".
-            =================================================== */
 
             BigDecimal investimento =
                     transacaoRepository
@@ -195,9 +157,7 @@ public class RelatorioService {
             }
 
 
-            /* ===================================================
-               ADICIONAR MÊS
-            =================================================== */
+
 
             String mesFormatado =
                     String.format(
@@ -230,9 +190,7 @@ public class RelatorioService {
         }
 
 
-        /* ===================================================
-           TOTAIS DOS 6 MESES
-        =================================================== */
+
 
         BigDecimal receitaTotal =
                 historico
@@ -270,9 +228,6 @@ public class RelatorioService {
                         );
 
 
-        /* ===================================================
-           CATEGORIAS DO PLANEJAMENTO DO MÊS
-        =================================================== */
 
         List<RelatorioCategoriaDTO> categoriasPlanejamento =
                 buscarCategoriasPlanejamento(
@@ -284,9 +239,7 @@ public class RelatorioService {
                 );
 
 
-        /* ===================================================
-           RETORNO
-        =================================================== */
+
 
         return new RelatorioDTO(
 
@@ -305,9 +258,6 @@ public class RelatorioService {
     }
 
 
-    /* ===================================================
-       CATEGORIAS DO PLANEJAMENTO
-    =================================================== */
 
     private List<RelatorioCategoriaDTO>
     buscarCategoriasPlanejamento(
@@ -319,10 +269,7 @@ public class RelatorioService {
     ) {
 
 
-        /*
-         * Procuramos exatamente o planejamento
-         * referente ao mês selecionado.
-         */
+
 
         PlanejamentoMensal planejamento =
                 planejamentoRepository
@@ -347,12 +294,6 @@ public class RelatorioService {
                         );
 
 
-        /*
-         * Se o mês não possui planejamento,
-         * o gráfico de rosca receberá
-         * uma lista vazia.
-         */
-
         if (planejamento == null) {
 
             return List.of();
@@ -370,11 +311,7 @@ public class RelatorioService {
         return categorias
                 .stream()
 
-                /*
-                 * Não mostramos
-                 * "Categorias restantes"
-                 * no donut.
-                 */
+
                 .filter(
                         categoria ->
                                 categoria.categoriaId()
@@ -385,17 +322,6 @@ public class RelatorioService {
                         categoria -> {
 
 
-                            /*
-                             * Quanto daquela categoria
-                             * já está comprometido.
-                             *
-                             * Entram:
-                             *
-                             * - pago
-                             * - pendente
-                             * - pago ultrapassado
-                             * - pendente ultrapassado
-                             */
 
                             BigDecimal utilizado =
                                     categoria
