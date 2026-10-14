@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    private static final String DEMO_EMAIL = "ruan@email.com";
-    private static final String DEMO_PASSWORD = "Flux@2026";
+    private static final String DEMO_EMAIL = "ruan@gmail.com";
+    private static final String DEMO_PASSWORD = "ruan1234";
 
     private final UsuarioRepository usuarioRepo;
     private final CategoriaRepository categoriaRepo;
@@ -59,7 +59,9 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
 
         // Evita duplicar o cenário demo a cada inicialização do PostgreSQL.
-        if (usuarioRepo.existsByEmail(DEMO_EMAIL)) {
+        // Checamos pela existência de categorias (não só do email demo) para
+        // não rodar de novo caso o DEMO_EMAIL mude no futuro.
+        if (usuarioRepo.existsByEmail(DEMO_EMAIL) || categoriaRepo.count() > 0) {
             System.out.println(">>> Dados demo já existem. DataInitializer ignorado.");
             return;
         }

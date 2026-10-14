@@ -804,6 +804,10 @@ public class InvestimentoService {
                 0;
 
 
+        long pendentesAtualizacao =
+                0;
+
+
         for (
                 Investimento investimento :
                 investimentos
@@ -914,18 +918,34 @@ public class InvestimentoService {
 
                 investimentosAtivos++;
 
+
+                boolean pendente =
+                        !movimentacaoRepository
+                                .existeRendimentoNoPeriodo(
+
+                                        investimento.getId(),
+
+                                        obterInicioPeriodo(
+                                                mes,
+                                                ano
+                                        ),
+
+                                        obterFimPeriodo(
+                                                mes,
+                                                ano
+                                        )
+                                );
+
+
+                if (pendente) {
+
+                    pendentesAtualizacao++;
+
+                }
+
             }
 
         }
-
-
-        /*
-         * Mantemos temporariamente o último campo
-         * como zero porque "pendentes de atualização"
-         * não existe mais na nova regra.
-         */
-        long pendentesAtualizacao =
-                0;
 
 
         return new CarteiraInvestimentoResumoDTO(
@@ -1016,6 +1036,10 @@ public class InvestimentoService {
                                     BigDecimal.ZERO;
 
 
+                            boolean pendenteAtualizacao =
+                                    false;
+
+
                             if (
                                     !mesCriacao.isAfter(
                                             mesSelecionado
@@ -1043,18 +1067,30 @@ public class InvestimentoService {
                                                 ano
                                         );
 
+
+                                /*
+                                 * Pendente de atualização quando
+                                 * ainda não existe rendimento
+                                 * registrado para este mês.
+                                 */
+                                pendenteAtualizacao =
+                                        !movimentacaoRepository
+                                                .existeRendimentoNoPeriodo(
+
+                                                        investimento.getId(),
+
+                                                        obterInicioPeriodo(
+                                                                mes,
+                                                                ano
+                                                        ),
+
+                                                        obterFimPeriodo(
+                                                                mes,
+                                                                ano
+                                                        )
+                                                );
+
                             }
-
-
-                            /*
-                             * O DTO ainda possui
-                             * pendenteAtualizacao.
-                             *
-                             * Essa funcionalidade não existe
-                             * mais, então sempre será false.
-                             */
-                            boolean pendenteAtualizacao =
-                                    false;
 
 
                             return new InvestimentoCardDTO(
@@ -1204,6 +1240,24 @@ public class InvestimentoService {
                         mes
                 )
                 .plusMonths(1)
+                .atDay(1)
+                .atStartOfDay();
+    }
+
+
+    private LocalDateTime obterInicioPeriodo(
+
+            Integer mes,
+
+            Integer ano
+
+    ) {
+
+        return YearMonth
+                .of(
+                        ano,
+                        mes
+                )
                 .atDay(1)
                 .atStartOfDay();
     }
